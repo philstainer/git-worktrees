@@ -1,0 +1,152 @@
+import { Action, ActionPanel, Form, getPreferenceValues, showToast, Toast } from "@raycast/api";
+import { useForm } from "@raycast/utils";
+import path from "node:path";
+import { useEffect, useRef } from "react";
+import parseUrl from "parse-url";
+import { statSync } from "node:fs";
+
+interface CloneRepositoryFormInputs {
+  url: string;
+  directory: string[];
+  repoName: string;
+}
+
+/**
+ * Checks if the provided string is a valid Git clone URL
+ * @param {string} url - The URL string to be validated
+ * @returns {boolean} True if the URL is a valid Git clone URL, otherwise false
+ */
+const isGitCloneUrl = (url: string): boolean => {
+  const gitUrlPattern =
+    /^(([A-Za-z0-9]+@|http(|s)\:\/\/)|(http(|s)\:\/\/[A-Za-z0-9]+@))([A-Za-z0-9.]+(:\d+)?)(?::|\/)([\d\/\w.-]+?)(\.git){1}$/i;
+  return gitUrlPattern.test(url);
+};
+
+/**
+ * Parses a URL string and returns a ParsedUrl object
+ * @param {string} url - The URL string to be parsed
+ * @returns {parseUrl.ParsedUrl | null} The parsed URL object or null if the URL is invalid
+ */
+const parseUrlSafe = (url: string): parseUrl.ParsedUrl | null => {
+  try {
+    return parseUrl(url);
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * Checks if the provided path is an existing directory
+ * @param {string} path - The path to be checked
+ * @returns {boolean} True if the path is an existing directory, otherwise false
+ */
+export const isExistingDirectory = (path: string): boolean => {
+  try {
+    const newPath = statSync(path);
+    return newPath?.isDirectory();
+  } catch {
+    return false;
+  }
+};
+
+export default function Command() {
+  const { handleSubmit, itemProps, values, setValue, setValidationError, reset } = useForm<CloneRepositoryFormInputs>({
+    onSubmit(values) {
+      console.log({ values });
+
+      showToast({
+        style: Toast.Style.Success,
+        title: "Yay!",
+        message: `${values.url} account created`,
+      });
+
+      // reset()
+    },
+    validation: {
+      url: (value) => {
+        if (!value || value.trim() === "") return "Repository URL is required";
+        if (!parseUrlSafe(value)) return "Invalid URL";
+        if (!isGitCloneUrl(value)) return "Invalid Repository URL";
+      },
+      directory: (paths) => {
+        const firstPath = paths?.at(0);
+        if (!firstPath) return "Directory is required";
+
+        const parsedPath = path.parse(firstPath);
+        if (!parsedPath.root || !parsedPath.dir) return "Directory path is invalid";
+      },
+      repoName: (value) => {
+        if (!value || value.trim() === "") return "Repository Name is required";
+
+        const firstPath = values.directory?.at(0);
+        if (!firstPath) return;
+
+        if (isExistingDirectory(firstPath)) return "Directory already exists";
+      },
+    },
+    initialValues: {
+      directory: ["~/Desktop"],
+    },
+  });
+
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleUrlChange = (url: string) => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+    debounceTimerRef.current = setTimeout(() => {
+      try {
+        const parsedUrl = parseUrlSafe(url);
+        if (!parsedUrl) return;
+
+        if (!isGitCloneUrl(url)) return;
+
+        const repoName = parsedUrl.pathname.split("/").at(-1)?.replace(".git", "");
+        if (!repoName) return;
+
+        setValidationError("url", undefined);
+        setValue("repoName", repoName);
+      } catch (error) {
+        if (error instanceof Error) showToast(Toast.Style.Failure, error.message);
+      }
+    }, 300);
+  };
+
+  useEffect(() => {
+    handleUrlChange(values.url);
+  }, [values.url]);
+
+  const preferences = getPreferenceValues();
+
+  return (
+    <Form
+      actions={
+        <ActionPanel>
+          <Action.SubmitForm title="Submit" onSubmit={handleSubmit} />
+        </ActionPanel>
+      }
+    >
+      <Form.TextField title="URL" placeholder="Repository URL" {...itemProps.url} info="Git Repository URL" />
+
+      <Form.FilePicker
+        title="Directory"
+        {...itemProps.directory}
+        canChooseFiles={false}
+        canChooseDirectories={true}
+        allowMultipleSelection={false}
+        info="Directory to clone the repository into"
+      />
+
+      <Form.TextField
+        title="Repository Name"
+        placeholder="Repository Name"
+        {...itemProps.repoName}
+        info="Folder to create and clone into"
+      />
+
+      <Form.Description
+        text={`Will clone the repository into the specified directory, with the repository name as the folder and setup a bare repo in the directory.\n\nPlease make sure to add a worktree after cloning using the add command.`}
+      />
+    </Form>
+  );
+}

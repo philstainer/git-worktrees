@@ -1,0 +1,175 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "git-worktree",
+  "title": "Git Worktree",
+  "description": "Clone, list, add and remove worktrees",
+  "icon": "extension-icon.png",
+  "author": "philstainer",
+  "categories": [
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "clone-worktree",
+      "title": "Clone Worktree",
+      "subtitle": "Setup Bare Repo",
+      "description": "Clones and sets up bare repo",
+      "mode": "view"
+    },
+    {
+      "name": "view-worktrees",
+      "title": "View Worktrees",
+      "subtitle": "View worktrees",
+      "description": "View worktrees",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "type": "directory",
+      "name": "projectsPath",
+      "title": "Projects Path",
+      "description": "The path to the folder containing your projects",
+      "required": true,
+      "placeholder": "~/dev"
+    },
+    {
+      "type": "checkbox",
+      "label": "Enable Worktree Caching",
+      "name": "enableWorktreeCaching",
+      "title": "Enable Worktree Caching",
+      "description": "Enable caching of worktrees to avoid scanning directories every time (you can clear it by using the \"Clear Cache\" command)",
+      "required": true,
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "label": "Enable Projects and Worktrees Frecency Sorting",
+      "name": "enableProjectsAndWorktreesFrequencySorting",
+      "title": "Enable Projects and Worktrees Frecency Sorting",
+      "description": "Enable sorting of projects and worktrees by frequency",
+      "required": true,
+      "default": true
+    },
+    {
+      "type": "textfield",
+      "name": "maxScanningLevels",
+      "title": "Max Scanning Levels (folder recursion)",
+      "description": "The max number of levels to scan for projects",
+      "required": false,
+      "default": "3",
+      "placeholder": "3"
+    },
+    {
+      "name": "editorApp",
+      "description": "The editor app to use",
+      "type": "appPicker",
+      "required": true,
+      "title": "Preferred editor",
+      "default": "Visual Studio Code"
+    },
+    {
+      "name": "terminalApp",
+      "description": "The terminal app to use",
+      "type": "appPicker",
+      "required": true,
+      "title": "Preferred terminal",
+      "default": "Terminal"
+    },
+    {
+      "type": "checkbox",
+      "label": "Resize Editor Window After Launch",
+      "name": "resizeEditorWindowAfterLaunch",
+      "title": "Resize Editor Window After Launch",
+      "description": "Resize the editor window after launching a project",
+      "required": false
+    },
+    {
+      "type": "dropdown",
+      "name": "windowResizeMode",
+      "title": "Resize Mode",
+      "description": "The mode to use when resizing the editor window",
+      "required": false,
+      "default": "almost-maximize",
+      "placeholder": "almost-maximize",
+      "data": [
+        {
+          "title": "Reasonable Size",
+          "value": "reasonable-size"
+        },
+        {
+          "title": "Almost Maximize",
+          "value": "almost-maximize"
+        },
+        {
+          "title": "Toggle Fullscreen",
+          "value": "toggle-fullscreen"
+        },
+        {
+          "title": "Maximize",
+          "value": "maximize"
+        },
+        {
+          "title": "Left Half",
+          "value": "left-half"
+        },
+        {
+          "title": "Center Half",
+          "value": "center-half"
+        },
+        {
+          "title": "Right Half",
+          "value": "right-half"
+        },
+        {
+          "title": "Top Half",
+          "value": "top-half"
+        },
+        {
+          "title": "Bottom Half",
+          "value": "bottom-half"
+        },
+        {
+          "title": "Previous Display",
+          "value": "previous-display"
+        },
+        {
+          "title": "Next Display",
+          "value": "next-display"
+        },
+        {
+          "title": "Previous Desktop",
+          "value": "previous-desktop"
+        },
+        {
+          "title": "Next Desktop",
+          "value": "next-desktop"
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.81.2",
+    "@raycast/utils": "^1.16.3",
+    "fast-glob": "^3.3.2",
+    "parse-url": "^9.2.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.8",
+    "@types/node": "20.8.10",
+    "@types/react": "18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "prepublishOnly": "echo \"\\n\\nIt seems like you are trying to publish the Raycast extension to npm.\\n\\nIf you did intend to publish it to npm, remove the \\`prepublishOnly\\` script and rerun \\`npm publish\\` again.\\nIf you wanted to publish it to the Raycast Store instead, use \\`npm run publish\\` instead.\\n\\n\" && exit 1",
+    "publish": "npx @raycast/api@latest publish"
+  },
+  "packageManager": "pnpm@9.6.0+sha512.38dc6fba8dba35b39340b9700112c2fe1e12f10b17134715a4aa98ccf7bb035e76fd981cf0bb384dfa98f8d6af5481c2bef2f4266a24bfa20c34eb7147ce0b5e"
+}
