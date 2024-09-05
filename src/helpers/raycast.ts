@@ -1,4 +1,4 @@
-import { Application, getPreferenceValues, open } from "@raycast/api";
+import { Application, Cache, getPreferenceValues, open } from "@raycast/api";
 import { executeCommand } from "./general";
 
 interface Preferences {
@@ -31,4 +31,22 @@ export const resizeEditorWindow = async (editorApp: Application): Promise<void> 
   } catch (error) {
     return;
   }
+};
+
+export const updateCache = async <T>({
+  cache = new Cache(),
+  key,
+  updater,
+}: {
+  cache?: Cache;
+  key: string;
+  updater: (data: T | null) => Promise<T | null | undefined> | T | null | undefined;
+}) => {
+  const data = cache.has(key) ? JSON.parse(cache.get(key) as string) : null;
+
+  const newData = await updater(data);
+
+  if (!newData) return;
+
+  cache.set(key, JSON.stringify(newData));
 };

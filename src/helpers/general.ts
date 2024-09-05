@@ -4,23 +4,12 @@ import { dirname } from "node:path";
 
 const exec = promisify(childProcess.exec);
 
-/**
- * Executes a command in the current working directory.
- *
- * @param {string} command - The command to execute.
- * @param {ExecOptions} [options] - Optional options for the command execution.
- * @returns {Promise<string>} A promise that resolves to the output of the command.
- *
- * @example
- * const command = "echo 'Hello, world!'";
- * const output = await executeCommand(command);
- * console.log(output); // Output: "Hello, world!"
- */
 export const executeCommand = async (command: string, options?: ExecOptions) => {
   const execOptions: ExecOptions = {
     ...options,
     cwd: options?.cwd,
     // shell: "/opt/homebrew/bin/zsh",
+    // shell: "/bin/zsh",
     // timeout: 5 * 1000
   };
 
@@ -28,32 +17,6 @@ export const executeCommand = async (command: string, options?: ExecOptions) => 
   // return exec(`[ -f /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)" && ${command}`, execOptions);
 };
 
-/**
- * Processes items in batches using the provided asynchronous processing function.
- *
- * @template T - The type of items in the input array.
- * @template R - The type of items in the output array.
- * @param {T[]} items - The array of items to be processed.
- * @param {number} batchSize - The number of items to process in each batch.
- * @param {(item: T) => Promise<R>} processFn - The asynchronous function to process each item.
- * @returns {Promise<R[]>} A promise that resolves to an array of processed items.
- *
- * @example
- * async function example() {
- *   const items = [1, 2, 3, 4, 5, 6];
- *   const batchSize = 2;
- *   const processFn = async (num) => num * 2;
- *
- *   try {
- *     const results = await batchPromises(items, batchSize, processFn);
- *     console.log(results); // Output: [2, 4, 6, 8, 10, 12]
- *   } catch (error) {
- *     console.error(error);
- *   }
- * }
- *
- * example();
- */
 export const batchPromises = async <T, R>(
   items: T[],
   batchSize: number,

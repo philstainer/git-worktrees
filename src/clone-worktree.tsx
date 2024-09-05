@@ -1,9 +1,15 @@
-import { Action, ActionPanel, Form, getPreferenceValues, showToast, Toast } from "@raycast/api";
+import { Action, ActionPanel, Form, showToast, Toast, useNavigation } from "@raycast/api";
 import { useForm } from "@raycast/utils";
 import path from "node:path";
 import { useEffect, useRef } from "react";
 import parseUrl from "parse-url";
 import { statSync } from "node:fs";
+import { preferences, updateCache } from "./helpers/raycast";
+import { mkdir, writeFile } from "node:fs/promises";
+import { executeCommand } from "./helpers/general";
+import { setUpBareRepositoryFetch } from "./helpers/git";
+import { WorktreeGrouped } from "./helpers/file";
+import AddCommand from "./add-worktree";
 
 interface CloneRepositoryFormInputs {
   url: string;
@@ -49,18 +55,79 @@ export const isExistingDirectory = (path: string): boolean => {
   }
 };
 
-export default function Command() {
-  const { handleSubmit, itemProps, values, setValue, setValidationError, reset } = useForm<CloneRepositoryFormInputs>({
-    onSubmit(values) {
-      console.log({ values });
+const initialValues = {
+  directory: [preferences.projectsPath],
+};
 
-      showToast({
-        style: Toast.Style.Success,
-        title: "Yay!",
-        message: `${values.url} account created`,
+export default function Command() {
+  const { push } = useNavigation();
+
+  const { handleSubmit, itemProps, values, setValue, setValidationError, reset } = useForm<CloneRepositoryFormInputs>({
+    onSubmit: async (values) => {
+      const toast = await showToast({
+        style: Toast.Style.Animated,
+        title: "Cloning Repository",
+        message: "Please wait while the repository is being cloned",
+        // message: `${values.url} account created`,
       });
 
-      // reset()
+      try {
+        const newPath = path.join(values.directory[0], values.repoName);
+
+        // Create the directory
+        await mkdir(newPath);
+
+        // Clone the repository as a bare repository into the new directory
+        await executeCommand(`git -C ${newPath} clone --bare "${values.url}" './.bare'`);
+
+        toast.title = "Setting Up Repository";
+        toast.message = "Please wait while the repository is being set up";
+
+        if (!["", ".", "./"].includes("./.bare")) await writeFile(path.join(newPath, ".git"), `gitdir: ./.bare`);
+
+        await setUpBareRepositoryFetch(newPath);
+
+        toast.style = Toast.Style.Success;
+        toast.title = "Repository Cloned & Set Up";
+        toast.message = "The repository has been cloned and set up";
+
+        // const cache = new Cache();
+
+        // Update the worktree cache if enabled
+        if (preferences.enableWorktreeCaching) {
+          await updateCache<WorktreeGrouped[]>({
+            key: "worktrees",
+            updater: (worktrees) => {
+              if (!worktrees) return;
+
+              worktrees.push({ id: newPath, worktrees: [] });
+              return worktrees;
+            },
+          });
+        }
+
+        await updateCache<string[]>({
+          key: "directories",
+          updater: (directories) => {
+            if (!directories) return;
+
+            directories.push(newPath);
+            return directories;
+          },
+        });
+
+        reset(initialValues);
+
+        push(<AddCommand directory={newPath} />);
+      } catch (e: unknown) {
+        if (!(e instanceof Error)) return;
+
+        toast.style = Toast.Style.Failure;
+        toast.title = "Error";
+        toast.message = e.message;
+
+        console.log(e);
+      }
     },
     validation: {
       url: (value) => {
@@ -80,14 +147,12 @@ export default function Command() {
 
         const firstPath = values.directory?.at(0);
         if (!firstPath) return;
-
-        if (isExistingDirectory(firstPath)) return "Directory already exists";
       },
     },
-    initialValues: {
-      directory: ["~/Desktop"],
-    },
+    initialValues: initialValues,
   });
+
+  console.log({ values, itemProps });
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -116,7 +181,18 @@ export default function Command() {
     handleUrlChange(values.url);
   }, [values.url]);
 
-  const preferences = getPreferenceValues();
+  useEffect(() => {
+    if (!values.repoName || !values.directory.length) return;
+
+    const directory = values.directory[0];
+    if (!directory) return;
+
+    const newPath = path.join(directory, values.repoName);
+
+    if (!isExistingDirectory(newPath)) return setValidationError("repoName", undefined);
+
+    setValidationError("repoName", "Directory already exists");
+  }, [values.directory, values.repoName]);
 
   return (
     <Form
@@ -142,6 +218,9 @@ export default function Command() {
         placeholder="Repository Name"
         {...itemProps.repoName}
         info="Folder to create and clone into"
+        onChange={(data) => {
+          itemProps.repoName.onChange?.(data);
+        }}
       />
 
       <Form.Description

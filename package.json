@@ -1,8 +1,8 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "git-worktree",
-  "title": "Git Worktree",
-  "description": "Clone, list, add and remove worktrees",
+  "name": "git-worktrees",
+  "title": "Git Worktrees",
+  "description": "Efficiently managing Git worktrees with actions for cloning, listing, adding, renaming and removing worktrees within projects",
   "icon": "extension-icon.png",
   "author": "philstainer",
   "categories": [
@@ -13,15 +13,22 @@
     {
       "name": "clone-worktree",
       "title": "Clone Worktree",
-      "subtitle": "Setup Bare Repo",
+      "subtitle": "Git Worktrees",
       "description": "Clones and sets up bare repo",
       "mode": "view"
     },
     {
       "name": "view-worktrees",
       "title": "View Worktrees",
-      "subtitle": "View worktrees",
+      "subtitle": "Git Worktrees",
       "description": "View worktrees",
+      "mode": "view"
+    },
+    {
+      "name": "add-worktree",
+      "title": "Add Worktree",
+      "subtitle": "Git Worktrees",
+      "description": "Add Worktree",
       "mode": "view"
     }
   ],
