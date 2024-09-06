@@ -7,9 +7,10 @@ import { statSync } from "node:fs";
 import { preferences, updateCache } from "./helpers/raycast";
 import { mkdir, writeFile } from "node:fs/promises";
 import { executeCommand } from "./helpers/general";
-import { setUpBareRepositoryFetch } from "./helpers/git";
-import { WorktreeGrouped } from "./helpers/file";
+import { parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
 import AddCommand from "./add-worktree";
+import { Project } from "#/config/types";
+import { formatPath } from "#/helpers/file";
 
 interface CloneRepositoryFormInputs {
   url: string;
@@ -91,16 +92,27 @@ export default function Command() {
         toast.title = "Repository Cloned & Set Up";
         toast.message = "The repository has been cloned and set up";
 
-        // const cache = new Cache();
-
         // Update the worktree cache if enabled
         if (preferences.enableWorktreeCaching) {
-          await updateCache<WorktreeGrouped[]>({
+          const pathParts = newPath.split("/").slice(3);
+
+          const newProject: Project = {
+            id: newPath,
+            name: pathParts.at(-1) || "",
+            displayPath: formatPath(newPath),
+            fullPath: newPath,
+            pathParts,
+            primaryDirectory: pathParts.at(-2) || "",
+            gitRemotes: await parseGitRemotes(newPath),
+            worktrees: [],
+          };
+
+          await updateCache<Project[]>({
             key: "worktrees",
             updater: (worktrees) => {
               if (!worktrees) return;
 
-              worktrees.push({ id: newPath, worktrees: [] });
+              worktrees.push(newProject);
               return worktrees;
             },
           });

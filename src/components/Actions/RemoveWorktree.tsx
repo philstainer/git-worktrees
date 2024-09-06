@@ -1,5 +1,5 @@
 import { Action, Icon } from "@raycast/api";
-import { Worktree } from "../../helpers/file";
+import { Worktree } from "#/config/types";
 
 export const RemoveWorktree = ({ worktree }: { worktree: Worktree }) => {
   // if (!worktree.dirty) return null;

@@ -1,10 +1,11 @@
 import fg from "fast-glob";
-import { isInsideBareRepository } from "./git";
+import { isInsideBareRepository, parseGitRemotes } from "./git";
 import { batchPromises, executeCommand } from "./general";
-import { ignoredDirectories } from "../config";
+import { ignoredDirectories } from "#/config";
 import { getPreferences, preferences } from "./raycast";
 import { Cache } from "@raycast/api";
 import { homedir } from "node:os";
+import { BareRepository, Project, Worktree } from "#/config/types";
 
 const findDirectories = async ({
   searchDir,
@@ -40,31 +41,29 @@ const findDirectories = async ({
   }
 };
 
-export const findBareRepos = async (searchDir: string): Promise<string[]> => {
-  const worktrees = await findDirectories({ searchDir, pattern: "**/.bare" });
+export const findBareRepos = async (searchDir: string): Promise<BareRepository[]> => {
+  const bareRepositories = await findDirectories({ searchDir, pattern: "**/.bare" });
 
-  const results = await batchPromises(worktrees, 10, async (path) => {
-    const newPath = path.slice(0, path.lastIndexOf("/.bare"));
-    const insideBare = await isInsideBareRepository(newPath);
-    return insideBare ? newPath : null;
+  const validBareRepos = (
+    await batchPromises(bareRepositories, 10, async (path) => {
+      const newPath = path.slice(0, path.lastIndexOf("/.bare"));
+      const insideBare = await isInsideBareRepository(newPath);
+      return insideBare ? newPath : null;
+    })
+  ).filter((path) => path !== null);
+
+  return batchPromises(validBareRepos, 10, async (path) => {
+    const pathParts = path.split("/").slice(3);
+
+    return {
+      name: pathParts.at(-1) || "",
+      displayPath: formatPath(path),
+      fullPath: path,
+      pathParts,
+      primaryDirectory: pathParts.at(-2) || "",
+      gitRemotes: await parseGitRemotes(path),
+    };
   });
-
-  return results.filter((path) => path !== null);
-};
-
-export type Directory = string;
-
-export type WorktreeGrouped = {
-  id: string;
-  worktrees: Worktree[];
-};
-
-export type Worktree = {
-  id: string;
-  path: string;
-  commit: string | null;
-  branch: string | null;
-  dirty: boolean;
 };
 
 export const getRepoWorktrees = async (bareDirectory: string): Promise<Worktree[]> => {
@@ -116,12 +115,13 @@ const isWorktreeDirty = async (path: string): Promise<boolean> => {
   return false;
 };
 
-export async function getWorktrees(searchDir: string): Promise<WorktreeGrouped[]> {
+export async function getWorktrees(searchDir: string): Promise<Project[]> {
   const repos = await getDirectoriesFromCacheOrFetch(searchDir);
 
   return batchPromises(repos, 15, async (repo) => ({
-    id: repo,
-    worktrees: await getRepoWorktrees(repo),
+    ...repo,
+    id: repo.fullPath,
+    worktrees: await getRepoWorktrees(repo.fullPath),
   }));
 }
 
@@ -129,7 +129,7 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
   if (!preferences.enableWorktreeCaching) return findBareRepos(searchDir);
 
   const cache = new Cache();
-  if (cache.has("directories")) return JSON.parse(cache.get("directories") as string) as string[];
+  if (cache.has("directories")) return JSON.parse(cache.get("directories") as string) as BareRepository[];
 
   const directories = await findBareRepos(searchDir);
   cache.remove("directories");
@@ -141,8 +141,11 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
 export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
   if (!preferences.enableWorktreeCaching) return getWorktrees(searchDir);
 
+  console.log(1);
+
   const cache = new Cache();
-  if (cache.has("worktrees")) return JSON.parse(cache.get("worktrees") as string) as WorktreeGrouped[];
+  if (cache.has("worktrees")) return JSON.parse(cache.get("worktrees") as string) as Project[];
+  console.log(2);
 
   const worktrees = await getWorktrees(searchDir);
   cache.remove("worktrees");

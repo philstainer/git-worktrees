@@ -1,15 +1,15 @@
 import { useCachedState } from "@raycast/utils";
-import { WorktreeGrouped } from "../../helpers/file";
 import { Icon, List } from "@raycast/api";
 import { relative } from "node:path";
-import { preferences } from "../../helpers/raycast";
+import { preferences } from "#/helpers/raycast";
+import { BareRepository } from "#/config/types";
 
 export function useDirectory() {
   const [directory, setDirectory] = useCachedState<string>("directory", "all");
   return { directory, setDirectory };
 }
-
-export function DirectoriesDropdown({ directories }: { directories: WorktreeGrouped[] }) {
+1;
+export function DirectoriesDropdown({ projects }: { projects: BareRepository[] }) {
   const { directory, setDirectory } = useDirectory();
 
   return (
@@ -18,12 +18,12 @@ export function DirectoriesDropdown({ directories }: { directories: WorktreeGrou
         <List.Dropdown.Item key="all" title="All" value="all" icon={Icon.HardDrive} />
       </List.Dropdown.Section>
       <List.Dropdown.Section>
-        {directories.map((dir: WorktreeGrouped) => {
+        {projects.map((dir) => {
           return (
             <List.Dropdown.Item
-              key={dir.id}
-              title={relative(preferences.projectsPath, dir.id)}
-              value={dir.id}
+              key={dir.fullPath}
+              title={relative(preferences.projectsPath, dir.fullPath)}
+              value={dir.fullPath}
               icon={Icon.Folder}
             />
           );

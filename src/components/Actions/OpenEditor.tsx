@@ -1,7 +1,7 @@
 import { Action, open } from "@raycast/api";
-import { withToast } from "../../helpers/toast";
-import { preferences, resizeEditorWindow } from "../../helpers/raycast";
-import { Worktree } from "../../helpers/file";
+import { withToast } from "#/helpers/toast";
+import { preferences, resizeEditorWindow } from "#/helpers/raycast";
+import { Worktree } from "#/config/types";
 
 export const OpenEditor = ({ worktree, extraActions }: { worktree: Worktree; extraActions?: () => Promise<void> }) => {
   if (!preferences.editorApp) return null;

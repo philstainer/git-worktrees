@@ -1,7 +1,7 @@
 import { Action, closeMainWindow, Icon, PopToRootType } from "@raycast/api";
-import { withToast } from "../../helpers/toast";
-import { preferences } from "../../helpers/raycast";
-import { clearCache } from "../../helpers/file";
+import { withToast } from "#/helpers/toast";
+import { preferences } from "#/helpers/raycast";
+import { clearCache } from "#/helpers/file";
 
 export default function ClearCache() {
   if (!preferences.enableWorktreeCaching) return null;

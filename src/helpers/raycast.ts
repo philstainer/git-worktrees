@@ -5,8 +5,9 @@ interface Preferences {
   projectsPath: string;
   maxScanningLevels: number;
   enableWorktreeCaching: boolean;
-  // enableWorktreesGrouping: boolean; // TODO: Implement
-  enableProjectsAndWorktreesFrequencySorting: boolean;
+  enableWorktreesGrouping: boolean;
+  enableProjectsFrequencySorting: boolean;
+  enableWorktreesFrequencySorting: boolean;
   editorApp: Application;
   terminalApp: Application;
   resizeEditorWindowAfterLaunch: boolean;
