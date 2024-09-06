@@ -1,5 +1,5 @@
 import type { BareRepository, Worktree } from "#/config/types";
-import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
+import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { relative } from "node:path";
 import { preferences } from "#/helpers/raycast";
 import { OpenEditor } from "#/components/Actions/OpenEditor";
@@ -22,13 +22,19 @@ export const Item = ({
   rankWorktree?: (key: "increment" | "reset") => void;
   revalidateProjects: () => void;
 }) => {
+  const gitRemote = project?.gitRemotes?.[0];
+
   return (
     <List.Item
       key={worktree.branch}
       icon={Icon.Folder}
       title={relative(project?.fullPath ?? preferences.projectsPath, worktree.path)}
       subtitle={`${worktree.branch ?? "detached"} @ ${worktree.commit?.slice(0, 7) ?? "none"}`}
-      accessories={[...(worktree.dirty ? [{ tag: { value: "Dirty", color: Color.Yellow }, tooltip: "Dirty" }] : [])]}
+      accessories={[
+        // TODO: Data may be cached so this is not working as intended.
+        // ...(worktree.dirty ? [{ tag: { value: "Dirty", color: Color.Yellow }, tooltip: "Dirty" }] : []),
+        ...(gitRemote?.icon ? [{ icon: gitRemote.icon, tooltip: gitRemote.host }] : []),
+      ]}
       actions={
         <ActionPanel>
           <ActionPanel.Section title="Worktree Actions">
@@ -48,6 +54,7 @@ export const Item = ({
 
             <ClearCache />
 
+            {gitRemote?.url && <Action.OpenInBrowser url={gitRemote.url} title="Open Repository in Browser" />}
             <Action.ShowInFinder
               title="Show in Finder"
               path={worktree.path}
