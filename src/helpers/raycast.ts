@@ -1,5 +1,6 @@
 import { Application, Cache, getPreferenceValues, open } from "@raycast/api";
 import { executeCommand } from "./general";
+import { Project } from "#/config/types";
 
 interface Preferences {
   projectsPath: string;
@@ -50,4 +51,29 @@ export const updateCache = async <T>({
   if (!newData) return;
 
   cache.set(key, JSON.stringify(newData));
+};
+
+export const removeWorktreeFromCache = ({
+  cache = new Cache(),
+  projectName,
+  worktreeId,
+  onSuccess,
+}: {
+  cache?: Cache;
+  projectName: string;
+  worktreeId: string;
+  onSuccess?: () => void;
+}) => {
+  if (!preferences.enableWorktreeCaching) return;
+  if (!cache.has("worktrees")) return onSuccess?.();
+
+  const projects = JSON.parse(cache.get("worktrees") as string) as Project[];
+
+  const projectIndex = projects.findIndex((project) => project.name === projectName);
+  if (projectIndex === -1) return;
+
+  projects[projectIndex].worktrees = projects[projectIndex].worktrees.filter((item) => item.id !== worktreeId);
+  cache.set("worktrees", JSON.stringify(projects));
+
+  return onSuccess?.();
 };

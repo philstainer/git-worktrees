@@ -1,15 +1,10 @@
 import { executeCommand, removeNewLine } from "./general";
 import { BARE_REPOSITORY_REMOTE_ORIGIN_FETCH } from "#/config/constants";
-import { Icon, Image } from "@raycast/api";
+import { Icon } from "@raycast/api";
 import gitConfigParser from "parse-git-config";
 import parseUrl from "parse-url";
+import { Remote, Repo } from "#/config/types";
 
-/**
- * Checks if a given path is inside a bare repository.
- *
- * @param {string} path - The path to check.
- * @returns {Promise<boolean>} A promise that resolves to a boolean indicating whether the path is inside a bare repository.
- */
 export const isInsideBareRepository = async (path: string): Promise<boolean> => {
   try {
     const command = `git rev-parse --is-bare-repository`;
@@ -45,18 +40,6 @@ export const setUpBareRepositoryFetch = async (path?: string) => {
     }
   }
 };
-
-interface Repo {
-  name: string;
-  host: string;
-  hostDisplayName: string;
-  url: string;
-  icon: Image;
-}
-
-interface Remote {
-  url: string;
-}
 
 export const parseGitRemotes = async (fullPath: string, path: string = "./.bare/config"): Promise<Repo[]> => {
   const repos: Repo[] = [];
@@ -106,4 +89,16 @@ export const parseGitRemotes = async (fullPath: string, path: string = "./.bare/
   }
 
   return repos;
+};
+
+export const removeWorktree = ({
+  parentPath,
+  worktreeName,
+  force = false,
+}: {
+  parentPath: string;
+  worktreeName: string;
+  force?: boolean;
+}) => {
+  return executeCommand(`git -C ${parentPath} worktree remove ${force ? "-f" : ""} ./${worktreeName}`);
 };

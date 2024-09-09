@@ -46,7 +46,7 @@ export const Item = ({
             />
             <OpenTerminal worktree={worktree} />
 
-            <RemoveWorktree worktree={worktree} />
+            <RemoveWorktree worktree={worktree} revalidateProjects={revalidateProjects} />
           </ActionPanel.Section>
 
           <ActionPanel.Section title="Extra Actions">
