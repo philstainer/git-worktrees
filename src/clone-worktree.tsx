@@ -6,8 +6,7 @@ import parseUrl from "parse-url";
 import { statSync } from "node:fs";
 import { preferences, updateCache } from "./helpers/raycast";
 import { mkdir, writeFile } from "node:fs/promises";
-import { executeCommand } from "./helpers/general";
-import { parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
+import { cloneBareRepository, parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
 import AddCommand from "./add-worktree";
 import { Project } from "#/config/types";
 import { formatPath } from "#/helpers/file";
@@ -79,7 +78,7 @@ export default function Command() {
         await mkdir(newPath);
 
         // Clone the repository as a bare repository into the new directory
-        await executeCommand(`git -C ${newPath} clone --bare "${values.url}" './.bare'`);
+        await cloneBareRepository({ path: newPath, url: values.url });
 
         toast.title = "Setting Up Repository";
         toast.message = "Please wait while the repository is being set up";

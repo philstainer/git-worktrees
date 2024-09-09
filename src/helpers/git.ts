@@ -91,6 +91,10 @@ export const parseGitRemotes = async (fullPath: string, path: string = "./.bare/
   return repos;
 };
 
+export const cloneBareRepository = async ({ path, url }: { path: string; url: string }) => {
+  return executeCommand(`git -C ${path} clone --bare "${url}" './.bare'`);
+};
+
 export const removeWorktree = ({
   parentPath,
   worktreeName,
@@ -101,4 +105,12 @@ export const removeWorktree = ({
   force?: boolean;
 }) => {
   return executeCommand(`git -C ${parentPath} worktree remove ${force ? "-f" : ""} ./${worktreeName}`);
+};
+
+export const pruneWorktrees = async ({ path }: { path: string }) => {
+  return executeCommand(`git -C ${path} worktree prune`);
+};
+
+export const removeBranch = async ({ path, branch }: { path: string; branch: string }) => {
+  return executeCommand(`git -C ${path} branch -D ${branch}`);
 };

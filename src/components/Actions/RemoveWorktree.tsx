@@ -1,10 +1,9 @@
 import { Action, confirmAlert, Icon, showToast, Toast } from "@raycast/api";
 import { Worktree } from "#/config/types";
 import path from "node:path";
-import { executeCommand } from "#/helpers/general";
 import { UNTRACKED_OR_MODIFIED_FILES_ERROR } from "#/config/constants";
 import { removeWorktreeFromCache } from "#/helpers/raycast";
-import { removeWorktree } from "#/helpers/git";
+import { pruneWorktrees, removeBranch, removeWorktree } from "#/helpers/git";
 
 export const RemoveWorktree = ({
   worktree,
@@ -50,8 +49,8 @@ export const RemoveWorktree = ({
 
     toast.title = "Running Cleanup";
     toast.message = "Cleaning up worktrees and branches";
-    await executeCommand(`git -C ${projectPath} branch -D ${worktree.branch}`);
-    await executeCommand(`git -C ${projectPath} worktree prune`);
+    if (worktree.branch) await removeBranch({ path: projectPath, branch: worktree.branch });
+    await pruneWorktrees({ path: projectPath });
 
     toast.style = Toast.Style.Success;
     toast.title = "Worktree Removed";
