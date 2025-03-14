@@ -46,7 +46,7 @@ export default function Command() {
     const projects: BareRepository[] = records.map(({ id, worktrees, ...project }) => project);
 
     return [projects, worktrees];
-  }, [directory, data, data, preferences.enableProjectsFrequencySorting, enableWorktreesGrouping]);
+  }, [directory, data, preferences.enableProjectsFrequencySorting, enableWorktreesGrouping]);
 
   if (groupedOrUngroupedWorktrees.length === 0) {
     return (

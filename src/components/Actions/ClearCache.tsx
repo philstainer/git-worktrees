@@ -8,7 +8,7 @@ export default function ClearCache() {
 
   return (
     <Action
-      title="Clear Cache"
+      title="Refresh Cache"
       key="clear-cache"
       icon={Icon.Trash}
       shortcut={{ modifiers: ["cmd", "shift"], key: "delete" }}

@@ -11,6 +11,7 @@ import AddCommand from "./add-worktree";
 import { Project } from "#/config/types";
 import { formatPath } from "#/helpers/file";
 import { tmpdir } from "node:os";
+import { CACHE_KEYS } from "#/config/constants";
 
 interface CloneRepositoryFormInputs {
   url: string;
@@ -113,18 +114,18 @@ export default function Command() {
           };
 
           await updateCache<Project[]>({
-            key: "worktrees",
-            updater: (worktrees) => {
-              if (!worktrees) return;
+            key: CACHE_KEYS.WORKTREES,
+            updater: (projects) => {
+              if (!projects) return;
 
-              worktrees.push(newProject);
-              return worktrees;
+              projects.push(newProject);
+              return projects;
             },
           });
         }
 
         await updateCache<string[]>({
-          key: "directories",
+          key: CACHE_KEYS.DIRECTORIES,
           updater: (directories) => {
             if (!directories) return;
 

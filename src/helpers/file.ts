@@ -6,6 +6,7 @@ import { getPreferences, preferences } from "./raycast";
 import { Cache } from "@raycast/api";
 import { homedir } from "node:os";
 import { BareRepository, Project, Worktree } from "#/config/types";
+import { CACHE_KEYS } from "#/config/constants";
 
 const findDirectories = async ({
   searchDir,
@@ -141,23 +142,20 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
 export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
   if (!preferences.enableWorktreeCaching) return getWorktrees(searchDir);
 
-  console.log(1);
-
   const cache = new Cache();
-  if (cache.has("worktrees")) return JSON.parse(cache.get("worktrees") as string) as Project[];
-  console.log(2);
+  if (cache.has(CACHE_KEYS.WORKTREES)) return JSON.parse(cache.get(CACHE_KEYS.WORKTREES) as string) as Project[];
 
   const worktrees = await getWorktrees(searchDir);
-  cache.remove("worktrees");
-  cache.set("worktrees", JSON.stringify(worktrees));
+  cache.remove(CACHE_KEYS.WORKTREES);
+  cache.set(CACHE_KEYS.WORKTREES, JSON.stringify(worktrees));
 
   return worktrees;
 };
 
 export function clearCache() {
   const cache = new Cache();
-  cache.remove("directories");
-  cache.remove("worktrees");
+  cache.remove(CACHE_KEYS.DIRECTORIES);
+  cache.remove(CACHE_KEYS.WORKTREES);
 }
 
 const home = `${homedir()}/`;
