@@ -5,11 +5,12 @@ import { useEffect, useRef } from "react";
 import parseUrl from "parse-url";
 import { statSync } from "node:fs";
 import { preferences, updateCache } from "./helpers/raycast";
-import { mkdir, writeFile } from "node:fs/promises";
+import { writeFile, rm, rename, mkdtemp } from "node:fs/promises";
 import { cloneBareRepository, parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
 import AddCommand from "./add-worktree";
 import { Project } from "#/config/types";
 import { formatPath } from "#/helpers/file";
+import { tmpdir } from "node:os";
 
 interface CloneRepositoryFormInputs {
   url: string;
@@ -27,6 +28,8 @@ const isGitCloneUrl = (url: string): boolean => {
     /^(([A-Za-z0-9]+@|http(|s)\:\/\/)|(http(|s)\:\/\/[A-Za-z0-9]+@))([A-Za-z0-9.]+(:\d+)?)(?::|\/)([\d\/\w.-]+?)(\.git){1}$/i;
   return gitUrlPattern.test(url);
 };
+
+const TEMP_DIR_PREFIX = "git-worktrees-";
 
 /**
  * Parses a URL string and returns a ParsedUrl object
@@ -68,24 +71,27 @@ export default function Command() {
         style: Toast.Style.Animated,
         title: "Cloning Repository",
         message: "Please wait while the repository is being cloned",
-        // message: `${values.url} account created`,
       });
 
+      let tempDir = null;
+      const finalPath = path.join(values.directory[0], values.repoName);
+
       try {
-        const newPath = path.join(values.directory[0], values.repoName);
+        // Create the temporary directory
+        tempDir = await mkdtemp(path.join(tmpdir(), TEMP_DIR_PREFIX));
 
-        // Create the directory
-        await mkdir(newPath);
-
-        // Clone the repository as a bare repository into the new directory
-        await cloneBareRepository({ path: newPath, url: values.url });
+        // Clone the repository as a bare repository into the temporary directory
+        await cloneBareRepository({ path: tempDir, url: values.url });
 
         toast.title = "Setting Up Repository";
         toast.message = "Please wait while the repository is being set up";
 
-        if (!["", ".", "./"].includes("./.bare")) await writeFile(path.join(newPath, ".git"), `gitdir: ./.bare`);
+        if (!["", ".", "./"].includes("./.bare")) await writeFile(path.join(tempDir, ".git"), `gitdir: ./.bare`);
 
-        await setUpBareRepositoryFetch(newPath);
+        await setUpBareRepositoryFetch(tempDir);
+
+        // Move the temporary directory to the final location
+        await rename(tempDir, finalPath);
 
         toast.style = Toast.Style.Success;
         toast.title = "Repository Cloned & Set Up";
@@ -93,16 +99,16 @@ export default function Command() {
 
         // Update the worktree cache if enabled
         if (preferences.enableWorktreeCaching) {
-          const pathParts = newPath.split("/").slice(3);
+          const pathParts = finalPath.split("/").slice(3);
 
           const newProject: Project = {
-            id: newPath,
+            id: finalPath,
             name: pathParts.at(-1) || "",
-            displayPath: formatPath(newPath),
-            fullPath: newPath,
+            displayPath: formatPath(finalPath),
+            fullPath: finalPath,
             pathParts,
             primaryDirectory: pathParts.at(-2) || "",
-            gitRemotes: await parseGitRemotes(newPath),
+            gitRemotes: await parseGitRemotes(finalPath),
             worktrees: [],
           };
 
@@ -122,22 +128,28 @@ export default function Command() {
           updater: (directories) => {
             if (!directories) return;
 
-            directories.push(newPath);
+            directories.push(finalPath);
             return directories;
           },
         });
 
         reset(initialValues);
 
-        push(<AddCommand directory={newPath} />);
+        push(<AddCommand directory={finalPath} />);
       } catch (e: unknown) {
+        // Clean up the temporary directory if it exists
+        try {
+          if (!tempDir) return;
+          await rm(tempDir, { recursive: true, force: true });
+        } catch (cleanupError) {
+          console.error("Failed to clean up temporary directory:", cleanupError);
+        }
+
         if (!(e instanceof Error)) return;
 
         toast.style = Toast.Style.Failure;
         toast.title = "Error";
         toast.message = e.message;
-
-        console.log(e);
       }
     },
     validation: {
@@ -162,8 +174,6 @@ export default function Command() {
     },
     initialValues: initialValues,
   });
-
-  console.log({ values, itemProps });
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
