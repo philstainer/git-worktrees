@@ -2,62 +2,21 @@ import { Action, ActionPanel, Form, showToast, Toast, useNavigation } from "@ray
 import { useForm } from "@raycast/utils";
 import path from "node:path";
 import { useEffect, useRef } from "react";
-import parseUrl from "parse-url";
-import { statSync } from "node:fs";
 import { preferences, updateCache } from "./helpers/raycast";
 import { writeFile, rm, rename, mkdtemp } from "node:fs/promises";
 import { cloneBareRepository, parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
 import AddCommand from "./add-worktree";
 import { Project } from "#/config/types";
-import { formatPath } from "#/helpers/file";
+import { formatPath, isExistingDirectory } from "#/helpers/file";
 import { tmpdir } from "node:os";
-import { CACHE_KEYS } from "#/config/constants";
+import { CACHE_KEYS, TEMP_DIR_PREFIX } from "#/config/constants";
+import { isGitCloneUrl, parseUrlSafe } from "#/helpers/general";
 
 interface CloneRepositoryFormInputs {
   url: string;
   directory: string[];
   repoName: string;
 }
-
-/**
- * Checks if the provided string is a valid Git clone URL
- * @param {string} url - The URL string to be validated
- * @returns {boolean} True if the URL is a valid Git clone URL, otherwise false
- */
-const isGitCloneUrl = (url: string): boolean => {
-  const gitUrlPattern =
-    /^(([A-Za-z0-9]+@|http(|s)\:\/\/)|(http(|s)\:\/\/[A-Za-z0-9]+@))([A-Za-z0-9.]+(:\d+)?)(?::|\/)([\d\/\w.-]+?)(\.git){1}$/i;
-  return gitUrlPattern.test(url);
-};
-
-const TEMP_DIR_PREFIX = "git-worktrees-";
-
-/**
- * Parses a URL string and returns a ParsedUrl object
- * @param {string} url - The URL string to be parsed
- * @returns {parseUrl.ParsedUrl | null} The parsed URL object or null if the URL is invalid
- */
-const parseUrlSafe = (url: string): parseUrl.ParsedUrl | null => {
-  try {
-    return parseUrl(url);
-  } catch (error) {
-    return null;
-  }
-};
-
-/**
- * Checks if the provided path is an existing directory
- * @param {string} path - The path to be checked
- * @returns {boolean} True if the path is an existing directory, otherwise false
- */
-export const isExistingDirectory = (path: string): boolean => {
-  try {
-    const newPath = statSync(path);
-    return newPath?.isDirectory();
-  } catch {
-    return false;
-  }
-};
 
 const initialValues = {
   directory: [preferences.projectsPath],

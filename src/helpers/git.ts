@@ -1,9 +1,24 @@
-import { executeCommand, removeNewLine } from "./general";
-import { BARE_REPOSITORY_REMOTE_ORIGIN_FETCH } from "#/config/constants";
-import { Icon } from "@raycast/api";
+import { executeCommand, removeFirstAndLastCharacter, removeNewLine } from "./general";
+import { BARE_REPOSITORY, BARE_REPOSITORY_REMOTE_ORIGIN_FETCH } from "#/config/constants";
+import { confirmAlert, Icon } from "@raycast/api";
 import gitConfigParser from "parse-git-config";
 import parseUrl from "parse-url";
 import { Remote, Repo } from "#/config/types";
+import * as path from "path";
+import { getPreferences } from "#/helpers/raycast";
+
+export const getRemoteOrigin = async () => {
+  const command = "git remote";
+
+  try {
+    const { stdout } = await executeCommand(command);
+    const origin = removeNewLine(stdout);
+
+    return origin === "" ? null : origin;
+  } catch (e: unknown) {
+    return null;
+  }
+};
 
 export const isInsideBareRepository = async (path: string): Promise<boolean> => {
   try {
@@ -113,4 +128,178 @@ export const pruneWorktrees = async ({ path }: { path: string }) => {
 
 export const removeBranch = async ({ path, branch }: { path: string; branch: string }) => {
   return executeCommand(`git -C ${path} branch -D ${branch}`);
+};
+
+export const moveWorktree = async ({
+  path,
+  currentName,
+  newName,
+}: {
+  path: string;
+  currentName: string;
+  newName: string;
+}) => {
+  const moveWorktree = `git -C ${path} worktree move ${currentName} ${newName}`;
+
+  return executeCommand(moveWorktree);
+};
+
+export const renameBranch = async ({ path, newBranchName }: { path: string; newBranchName: string }) => {
+  const renameBranch = `git -C ${path} branch -m ${newBranchName}`;
+
+  return executeCommand(renameBranch);
+};
+
+export const renameWorktree = async ({
+  parentPath,
+  currentName,
+  newName,
+}: {
+  parentPath: string;
+  currentName: string;
+  newName: string;
+}) => {
+  const newPath = path.join(parentPath, newName);
+
+  await moveWorktree({ path: parentPath, currentName, newName });
+
+  await renameBranch({ path: newPath, newBranchName: newName });
+
+  return {
+    path: newPath,
+  };
+};
+
+export const fetch = async (path?: string) => {
+  try {
+    const command = `git -C ${path} fetch --all --prune`;
+    await executeCommand(command);
+  } catch (e: unknown) {
+    throw Error(e instanceof Error ? e.message : "Unknown error occurred");
+  }
+};
+
+export const checkIfBranchNameIsValid = async ({ path, name }: { path?: string; name: string }) => {
+  const command = `git -C ${path} check-ref-format --branch '${name}'`;
+
+  try {
+    await executeCommand(command);
+
+    return true;
+  } catch (e: unknown) {
+    return false;
+  }
+};
+
+export const getRemoteBranches = async ({ path }: { path?: string }): Promise<string[]> => {
+  try {
+    const command = `git -C ${path} branch -r`;
+    const { stdout } = await executeCommand(command);
+
+    if (!stdout) return [];
+
+    return stdout
+      .split("\n")
+      .filter((line: string) => line !== "")
+      .filter((line: string) => !line.includes("->"))
+      .filter((line: string) => line.startsWith("  origin/"))
+      .map((line: string) => line.substring("  origin/".length))
+      .map((branch: string) => branch.trim());
+  } catch (e: unknown) {
+    throw Error(e instanceof Error ? e.message : "Unknown error occurred");
+  }
+};
+
+export const getLocalWorktrees = async ({
+  path,
+  includeBare = false,
+  showCurrentWorktree = false,
+}: {
+  path: string;
+  includeBare?: boolean;
+  showCurrentWorktree?: boolean;
+}) => {
+  const command = `git -C ${path} worktree list`;
+
+  try {
+    const { stdout } = await executeCommand(command);
+
+    const worktrees = await getFilteredWorktrees(stdout, includeBare, showCurrentWorktree);
+
+    return worktrees;
+  } catch (e: unknown) {
+    throw Error(e instanceof Error ? e.message : "Unknown error occurred");
+  }
+};
+
+export const getCurrentBranchName = async () => {
+  try {
+    const command = "git rev-parse --abbrev-ref HEAD";
+    const { stdout } = await executeCommand(command);
+
+    return stdout.split("\n")[0];
+  } catch (e: unknown) {
+    return null;
+  }
+};
+
+const getFilteredWorktrees = async (stdout: string, includeBare = false, showCurrentWorktree = false) => {
+  const currentWorktree = await getCurrentBranchName();
+
+  let splitWorktrees = stdout
+    .split("\n")
+    .filter((str) => str !== "")
+    .map((str) => {
+      const [path, hash, worktree] = str.split(" ").filter((str) => str !== "");
+
+      return {
+        path,
+        hash: worktree ? hash : "",
+        worktree: removeFirstAndLastCharacter(worktree ? worktree : hash),
+      };
+    });
+
+  if (!showCurrentWorktree) splitWorktrees = splitWorktrees.filter((worktree) => worktree.worktree !== currentWorktree);
+
+  if (!includeBare) splitWorktrees = splitWorktrees.filter(({ worktree }) => worktree !== BARE_REPOSITORY);
+
+  return splitWorktrees;
+};
+
+export const pushNewBranchToRemote = async ({ path, branch }: { path: string; branch: string }) => {
+  try {
+    const command = `git -C ${path} push --set-upstream origin ${branch}`;
+    await executeCommand(command);
+  } catch (e: unknown) {
+    throw Error(e instanceof Error ? e.message : "Unknown error occurred");
+  }
+};
+
+export const shouldPushWorktree = async ({
+  path,
+  branch,
+  onAccept,
+}: {
+  path: string;
+  branch: string;
+  onAccept?: () => void;
+}) => {
+  // const origin = await getRemoteOrigin();
+  // if (!origin) return;
+
+  const { shouldAutomaticallyPushWorktree } = getPreferences();
+
+  if (shouldAutomaticallyPushWorktree === "no") return;
+
+  if (shouldAutomaticallyPushWorktree === "ask") {
+    const confirmed = await confirmAlert({
+      title: `Do you want to push to '${branch}' to remote?`,
+    });
+
+    if (!confirmed) return;
+  }
+
+  onAccept?.();
+
+  await pushNewBranchToRemote({ path, branch });
 };

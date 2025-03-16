@@ -1,6 +1,7 @@
 import { promisify } from "node:util";
 import childProcess, { ExecOptions } from "node:child_process";
 import { dirname } from "node:path";
+import parseUrl from "parse-url";
 
 const exec = promisify(childProcess.exec);
 
@@ -76,3 +77,27 @@ export const removeNewLine = (string: string): string => string.replace(/\n/g, "
  * console.log(parentPath); // Output: "/path/to"
  */
 export const traverseUpDirectory = (path: string): string => dirname(path);
+
+/**
+ * Parses a URL string and returns a ParsedUrl object
+ * @param {string} url - The URL string to be parsed
+ * @returns {parseUrl.ParsedUrl | null} The parsed URL object or null if the URL is invalid
+ */
+export const parseUrlSafe = (url: string): parseUrl.ParsedUrl | null => {
+  try {
+    return parseUrl(url);
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * Checks if the provided string is a valid Git clone URL
+ * @param {string} url - The URL string to be validated
+ * @returns {boolean} True if the URL is a valid Git clone URL, otherwise false
+ */
+export const isGitCloneUrl = (url: string): boolean => {
+  const gitUrlPattern =
+    /^(([A-Za-z0-9]+@|http(|s)\:\/\/)|(http(|s)\:\/\/[A-Za-z0-9]+@))([A-Za-z0-9.]+(:\d+)?)(?::|\/)([\d\/\w.-]+?)(\.git){1}$/i;
+  return gitUrlPattern.test(url);
+};

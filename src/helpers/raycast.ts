@@ -12,6 +12,7 @@ interface Preferences {
   enableWorktreesFrequencySorting: boolean;
   editorApp: Application;
   terminalApp: Application;
+  shouldAutomaticallyPushWorktree: string;
   resizeEditorWindowAfterLaunch: boolean;
   windowResizeMode: string;
 }

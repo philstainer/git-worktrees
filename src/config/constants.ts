@@ -6,3 +6,7 @@ export const CACHE_KEYS = {
   WORKTREES: "worktrees",
   DIRECTORIES: "directories",
 };
+
+export const BARE_REPOSITORY = "bare";
+
+export const TEMP_DIR_PREFIX = "git-worktrees-";

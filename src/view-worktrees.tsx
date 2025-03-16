@@ -48,42 +48,55 @@ export default function Command() {
     return [projects, worktrees];
   }, [directory, data, preferences.enableProjectsFrequencySorting, enableWorktreesGrouping]);
 
-  if (groupedOrUngroupedWorktrees.length === 0) {
+  console.log(groupedOrUngroupedWorktrees);
+
+  if (groupedOrUngroupedWorktrees.length === 0)
     return (
       <List>
-        <List.EmptyView
-          title={`No bare repos or worktrees found in ${formatPath(preferences.projectsPath)}`}
-          description="Try adding a new worktree or changing your repo dir preference."
-          actions={
-            <ActionPanel>
-              <Action.Push title="Add Worktree" icon={Icon.Plus} target={<AddCommand />} />
-              <Action.Push title="Clone Worktree" icon={Icon.Plus} target={<CloneCommand />} />
-              <Action title="Open Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
-            </ActionPanel>
-          }
-        />
+        <EmptyWorktreeList />
       </List>
     );
-  }
 
   return (
     <List isLoading={isLoading} searchBarAccessory={projects && <DirectoriesDropdown projects={projects} />}>
       {enableWorktreesGrouping ? (
-        (groupedOrUngroupedWorktrees as Project[]).map((project) => (
-          <List.Section title={project.displayPath} key={project.id} subtitle={project.worktrees.length.toString()}>
-            <Worktree.List
-              project={project}
-              worktrees={project.worktrees}
-              rankBareRepository={(action) =>
-                action === "increment" ? visitBareRepo?.(project) : resetRankingRepos?.(project)
-              }
-              revalidateProjects={revalidate}
-            />
-          </List.Section>
-        ))
+        directory &&
+        (groupedOrUngroupedWorktrees as Project[]).length === 1 &&
+        (groupedOrUngroupedWorktrees as Project[]).at(0)?.worktrees.length === 0 ? (
+          <EmptyWorktreeList />
+        ) : (
+          (groupedOrUngroupedWorktrees as Project[]).map((project) => (
+            <List.Section title={project.displayPath} key={project.id} subtitle={project.worktrees.length.toString()}>
+              <Worktree.List
+                project={project}
+                worktrees={project.worktrees}
+                rankBareRepository={(action) =>
+                  action === "increment" ? visitBareRepo?.(project) : resetRankingRepos?.(project)
+                }
+                revalidateProjects={revalidate}
+              />
+            </List.Section>
+          ))
+        )
       ) : (
         <Worktree.List worktrees={groupedOrUngroupedWorktrees as Worktree[]} revalidateProjects={revalidate} />
       )}
     </List>
   );
 }
+
+export const EmptyWorktreeList = () => {
+  return (
+    <List.EmptyView
+      title={`No bare repos or worktrees found in ${formatPath(preferences.projectsPath)}`}
+      description="Try adding a new worktree or changing your repo dir preference."
+      actions={
+        <ActionPanel>
+          <Action.Push title="Add Worktree" icon={Icon.Plus} target={<AddCommand />} />
+          <Action.Push title="Clone Worktree" icon={Icon.Plus} target={<CloneCommand />} />
+          <Action title="Open Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
+        </ActionPanel>
+      }
+    />
+  );
+};

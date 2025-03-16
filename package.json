@@ -103,6 +103,28 @@
       "default": "Terminal"
     },
     {
+      "type": "dropdown",
+      "name": "shouldAutomaticallyPushWorktree",
+      "title": "Should Automatically Push Worktree",
+      "description": "Should automatically push worktree after adding or renaming",
+      "required": false,
+      "default": "yes",
+      "data": [
+        {
+          "title": "Yes",
+          "value": "yes"
+        },
+        {
+          "title": "No",
+          "value": "no"
+        },
+        {
+          "title": "Ask",
+          "value": "ask"
+        }
+      ]
+    },
+    {
       "type": "checkbox",
       "label": "Resize Editor Window After Launch",
       "name": "resizeEditorWindowAfterLaunch",

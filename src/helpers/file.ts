@@ -7,6 +7,7 @@ import { Cache } from "@raycast/api";
 import { homedir } from "node:os";
 import { BareRepository, Project, Worktree } from "#/config/types";
 import { CACHE_KEYS } from "#/config/constants";
+import { statSync } from "node:fs";
 
 const findDirectories = async ({
   searchDir,
@@ -173,3 +174,17 @@ export function formatPath(path: string): string {
   }
   return path;
 }
+
+/**
+ * Checks if the provided path is an existing directory
+ * @param {string} path - The path to be checked
+ * @returns {boolean} True if the path is an existing directory, otherwise false
+ */
+export const isExistingDirectory = (path: string): boolean => {
+  try {
+    const newPath = statSync(path);
+    return newPath?.isDirectory();
+  } catch {
+    return false;
+  }
+};

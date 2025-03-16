@@ -5,6 +5,7 @@ import { preferences } from "#/helpers/raycast";
 import { OpenEditor } from "#/components/Actions/OpenEditor";
 import { OpenTerminal } from "#/components/Actions/OpenTerminal";
 import { RemoveWorktree } from "#/components/Actions/RemoveWorktree";
+import { RenameWorktree } from "#/components/Actions/RenameWorktree";
 import { RefreshWorktrees } from "#/components/Actions/RefreshWorktrees";
 import ClearCache from "#/components/Actions/ClearCache";
 import { ResetRanking } from "#/components/Actions/ResetRanking";
@@ -47,6 +48,7 @@ export const Item = ({
             <OpenTerminal worktree={worktree} />
 
             <RemoveWorktree worktree={worktree} revalidateProjects={revalidateProjects} />
+            <RenameWorktree worktree={worktree} revalidateProjects={revalidateProjects} />
           </ActionPanel.Section>
 
           <ActionPanel.Section title="Extra Actions">
