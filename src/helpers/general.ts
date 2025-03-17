@@ -105,13 +105,11 @@ export const isGitCloneUrl = (url: string): boolean => {
 export const runWithAbort = <T>(signal: AbortSignal, asyncFunction: () => Promise<T>) => {
   return new Promise<T>((resolve, reject) => {
     if (signal.aborted) {
-      console.log("Operation was aborted");
       reject(new Error("Operation was aborted"));
       return;
     }
 
     const abortHandler = () => {
-      console.log("Operation was aborted");
       reject(new Error("Operation was aborted"));
     };
 

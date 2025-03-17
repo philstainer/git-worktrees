@@ -48,8 +48,6 @@ export default function Command() {
     return [projects, worktrees];
   }, [directory, data, preferences.enableProjectsFrequencySorting, enableWorktreesGrouping]);
 
-  console.log(groupedOrUngroupedWorktrees);
-
   if (groupedOrUngroupedWorktrees.length === 0)
     return (
       <List>
