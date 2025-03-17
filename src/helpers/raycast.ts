@@ -79,3 +79,31 @@ export const removeWorktreeFromCache = ({
 
   return onSuccess?.();
 };
+
+export const storeDataInCache = <T>(key: string, data: T, options: { cache?: Cache; duration?: number } = {}) => {
+  const cache = options.cache || new Cache();
+  const duration = options.duration || 5 * 60 * 1000; // Default to 10 minutes
+  const expirationDate = Date.now() + duration;
+
+  const cacheData = {
+    data,
+    expirationDate,
+  };
+
+  cache.set(key, JSON.stringify(cacheData));
+};
+
+export const getDataFromCache = <T>(key: string, options: { cache: Cache } = { cache: new Cache() }) => {
+  const cachedValue = options.cache.get(key);
+
+  if (!cachedValue) return null;
+
+  const { data, expirationDate } = JSON.parse(cachedValue) as { data: T; expirationDate: number };
+
+  if (Date.now() > expirationDate) {
+    options.cache.remove(key); // Data is expired, remove it
+    return null;
+  }
+
+  return data;
+};

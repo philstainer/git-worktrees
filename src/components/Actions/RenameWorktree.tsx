@@ -1,11 +1,11 @@
+import { CACHE_KEYS } from "#/config/constants";
+import { Worktree, type Project } from "#/config/types";
+import { isExistingDirectory } from "#/helpers/file";
+import { checkIfBranchNameIsValid, fetch, getRemoteBranches, renameWorktree, shouldPushWorktree } from "#/helpers/git";
+import { getPreferences, updateCache } from "#/helpers/raycast";
 import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { useForm } from "@raycast/utils";
-import { Worktree, type Project } from "#/config/types";
 import path from "node:path";
-import { fetch, checkIfBranchNameIsValid, renameWorktree, getRemoteBranches, shouldPushWorktree } from "#/helpers/git";
-import { getPreferences, updateCache } from "#/helpers/raycast";
-import { isExistingDirectory } from "#/helpers/file";
-import { CACHE_KEYS } from "#/config/constants";
 
 type RenameWorktreeProps = {
   worktree: Worktree;

@@ -1,11 +1,12 @@
-import { executeCommand, removeFirstAndLastCharacter, removeNewLine } from "./general";
 import { BARE_REPOSITORY, BARE_REPOSITORY_REMOTE_ORIGIN_FETCH } from "#/config/constants";
+import { Remote, Repo } from "#/config/types";
+import { getPreferences } from "#/helpers/raycast";
 import { confirmAlert, Icon } from "@raycast/api";
+import type { ExecOptions } from "child_process";
 import gitConfigParser from "parse-git-config";
 import parseUrl from "parse-url";
-import { Remote, Repo } from "#/config/types";
 import * as path from "path";
-import { getPreferences } from "#/helpers/raycast";
+import { executeCommand, removeFirstAndLastCharacter, removeNewLine } from "./general";
 
 export const getRemoteOrigin = async () => {
   const command = "git remote";
@@ -191,10 +192,13 @@ export const checkIfBranchNameIsValid = async ({ path, name }: { path?: string; 
   }
 };
 
-export const getRemoteBranches = async ({ path }: { path?: string }): Promise<string[]> => {
+export const getRemoteBranches = async (
+  { path }: { path?: string },
+  options?: ExecOptions | undefined,
+): Promise<string[]> => {
   try {
     const command = `git -C ${path} branch -r`;
-    const { stdout } = await executeCommand(command);
+    const { stdout } = await executeCommand(command, options);
 
     if (!stdout) return [];
 
@@ -302,4 +306,76 @@ export const shouldPushWorktree = async ({
   onAccept?.();
 
   await pushNewBranchToRemote({ path, branch });
+};
+
+export const checkIfBranchExistsOnRemote = async ({ path, branch }: { path: string; branch: string }) => {
+  try {
+    const command = `git -C ${path} ls-remote origin ${branch}`;
+    const { stdout } = await executeCommand(command);
+
+    if (!stdout) return false;
+
+    return true;
+  } catch (e: unknown) {
+    throw Error(e instanceof Error ? e.message : "Unknown error occurred");
+  }
+};
+
+export const getCurrentCommit = async ({ path }: { path: string }) => {
+  try {
+    const command = `git -C ${path} rev-parse HEAD`;
+    const { stdout } = await executeCommand(command);
+
+    if (!stdout) return null;
+
+    return stdout.trim();
+  } catch (e: unknown) {
+    return null;
+  }
+};
+
+export const pullBranchChanges = async ({ path }: { path: string }) => {
+  try {
+    const command = `git -C ${path} pull`;
+    await executeCommand(command);
+  } catch (e: unknown) {
+    throw Error(e instanceof Error ? e.message : "Unknown error occurred");
+  }
+};
+
+export const addRemoteWorktree = async ({
+  remoteBranch,
+  newWorktreePath,
+  parentPath,
+}: {
+  remoteBranch: string;
+  newWorktreePath: string;
+  parentPath: string;
+}) => {
+  try {
+    const worktreeAddCommand = `git -C ${parentPath} worktree add --track -B ${remoteBranch} ${newWorktreePath} origin/${remoteBranch}`;
+    await executeCommand(worktreeAddCommand);
+  } catch (e: unknown) {
+    throw Error(e instanceof Error ? e.message : "Unknown error occurred");
+  }
+};
+
+export const addNewWorktree = async ({
+  newBranch,
+  newWorktreePath,
+  trackingBranch,
+  parentPath,
+}: {
+  newBranch: string;
+  trackingBranch: string;
+  newWorktreePath: string;
+  parentPath: string;
+}) => {
+  try {
+    const addCommand = `git -C ${parentPath} worktree add --track -B ${newBranch} ${newWorktreePath} origin/${trackingBranch}`;
+
+    await executeCommand(addCommand);
+  } catch (e: unknown) {
+    throw Error(e instanceof Error ? e.message : "Unknown error occurred");
+  }
 };

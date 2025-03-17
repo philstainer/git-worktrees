@@ -1,6 +1,6 @@
-import { promisify } from "node:util";
 import childProcess, { ExecOptions } from "node:child_process";
 import { dirname } from "node:path";
+import { promisify } from "node:util";
 import parseUrl from "parse-url";
 
 const exec = promisify(childProcess.exec);
@@ -100,4 +100,57 @@ export const isGitCloneUrl = (url: string): boolean => {
   const gitUrlPattern =
     /^(([A-Za-z0-9]+@|http(|s)\:\/\/)|(http(|s)\:\/\/[A-Za-z0-9]+@))([A-Za-z0-9.]+(:\d+)?)(?::|\/)([\d\/\w.-]+?)(\.git){1}$/i;
   return gitUrlPattern.test(url);
+};
+
+export const runWithAbort = <T>(signal: AbortSignal, asyncFunction: () => Promise<T>) => {
+  return new Promise<T>((resolve, reject) => {
+    if (signal.aborted) {
+      console.log("Operation was aborted");
+      reject(new Error("Operation was aborted"));
+      return;
+    }
+
+    const abortHandler = () => {
+      console.log("Operation was aborted");
+      reject(new Error("Operation was aborted"));
+    };
+
+    signal.addEventListener("abort", abortHandler);
+
+    asyncFunction()
+      .then(resolve)
+      .catch(reject)
+      .finally(() => {
+        signal.removeEventListener("abort", abortHandler);
+      });
+  });
+};
+
+export const sortBranches = (incomingArr: string[]) => {
+  const arr = [...incomingArr];
+
+  const customSort = (a: string, b: string) => {
+    // Check if a or b is "main" or "master"
+    const aIsMainOrMaster = /^(main|master)$/i.test(a);
+    const bIsMainOrMaster = /^(main|master)$/i.test(b);
+
+    if (aIsMainOrMaster && bIsMainOrMaster) {
+      // If both a and b are "main" or "master", sort them lexicographically
+      return a.localeCompare(b);
+    } else if (aIsMainOrMaster) {
+      // If only a is "main" or "master", prioritize it to be at the top
+      return -1;
+    } else if (bIsMainOrMaster) {
+      // If only b is "main" or "master", prioritize it to be at the top
+      return 1;
+    } else {
+      // Otherwise, sort them lexicographically
+      return a.localeCompare(b);
+    }
+  };
+
+  // Sort the array using the custom sorting function
+  arr.sort(customSort);
+
+  return arr;
 };
