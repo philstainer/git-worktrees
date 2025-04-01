@@ -1,3 +1,1 @@
-- rename worktree
-- add new worktree
 - remove project

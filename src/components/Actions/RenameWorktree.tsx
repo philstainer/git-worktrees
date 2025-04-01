@@ -43,8 +43,10 @@ const RenameForm = ({ worktree, revalidateProjects }: RenameWorktreeProps) => {
 
       try {
         const newPath = path.join(projectPath, values.newName);
-        const [, isExistingWorktree, isBranchNameValid, remoteBranches] = await Promise.all([
-          fetch(worktreePath),
+
+        await fetch(worktreePath);
+
+        const [isExistingWorktree, isBranchNameValid, remoteBranches] = await Promise.all([
           isExistingDirectory(newPath),
           checkIfBranchNameIsValid({ path: worktreePath, name: values.newName }),
           getRemoteBranches({ path: worktreePath }),

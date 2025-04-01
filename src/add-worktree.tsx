@@ -10,6 +10,7 @@ import {
   addNewWorktree,
   addRemoteWorktree,
   checkIfBranchExistsOnRemote,
+  fetch,
   getCurrentCommit,
   getRemoteBranches,
   pullBranchChanges,
@@ -72,6 +73,8 @@ export default function Command({ directory: initialDirectory }: { directory?: s
   const { handleSubmit, itemProps, values, setValue } = useForm<AddWorktreeFormValues>({
     initialValues,
     async onSubmit(values) {
+      const fetchProjectUpdates = fetch(values.project);
+
       const toast = await showToast({
         style: Toast.Style.Animated,
         title: "Creating Worktree",
@@ -83,6 +86,8 @@ export default function Command({ directory: initialDirectory }: { directory?: s
       const isNewBranch = values.branch === WorktreeFlowType.CREATE_NEW;
 
       try {
+        await fetchProjectUpdates;
+
         const isExistingBranch = await checkIfBranchExistsOnRemote({ path: values.project, branch: values.branch });
 
         const directory = values.project;
