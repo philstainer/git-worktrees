@@ -297,7 +297,6 @@ export default function Command({ directory: initialDirectory }: { directory?: s
           placeholder="feature/my-new-feature"
           info="Name for the new branch and worktree"
           {...itemProps.worktreeName}
-          autoFocus
         />
       )}
 
