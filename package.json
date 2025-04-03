@@ -3,7 +3,7 @@
   "name": "git-worktrees",
   "title": "Git Worktrees",
   "description": "Efficiently managing Git worktrees with actions for cloning, listing, adding, renaming and removing worktrees within projects",
-  "icon": "icon.png",
+  "icon": "extension_icon.png",
   "author": "philstainer",
   "categories": [
     "Developer Tools"
