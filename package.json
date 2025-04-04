@@ -194,6 +194,14 @@
           "value": "next-desktop"
         }
       ]
+    },
+    {
+      "type": "textfield",
+      "name": "branchPrefixesToRemove",
+      "title": "Branch Prefixes to Remove",
+      "description": "Comma-separated list of prefixes to automatically remove when pasting branch names (e.g., 'git checkout -b ,checkout -b ,git switch -c ')",
+      "required": false,
+      "default": "git checkout -b,checkout -b,git switch -c"
     }
   ],
   "dependencies": {

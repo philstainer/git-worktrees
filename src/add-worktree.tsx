@@ -16,7 +16,7 @@ import {
   pullBranchChanges,
   shouldPushWorktree,
 } from "./helpers/git";
-import { preferences, resizeEditorWindow, updateCache } from "./helpers/raycast";
+import { getPreferences, preferences, resizeEditorWindow, updateCache } from "./helpers/raycast";
 
 enum WorktreeFlowType {
   CREATE_NEW = "create_new",
@@ -32,6 +32,8 @@ interface AddWorktreeFormValues {
   worktreeName: string;
   trackingBranch: string;
 }
+
+const prefixesToRemove = getPreferences().branchPrefixesToRemove.split(",");
 
 export default function Command({ directory: initialDirectory }: { directory?: string } = {}) {
   const { pop } = useNavigation();
@@ -246,6 +248,15 @@ export default function Command({ directory: initialDirectory }: { directory?: s
     return remoteBranches.filter((branch) => project?.worktrees.findIndex((wt) => wt.branch === branch) === -1);
   }, [project, remoteBranches]);
 
+  const handleWorktreeNameOnChange = (text: string) => {
+    const newWorktreeName = prefixesToRemove.reduce(
+      (text, prefix) => (text.startsWith(prefix) ? text.slice(prefix.length + 1) : text).trim(),
+      text,
+    );
+
+    itemProps.worktreeName.onChange?.(newWorktreeName);
+  };
+
   return (
     <Form
       isLoading={isLoading || isLoadingProjects}
@@ -297,6 +308,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
           placeholder="feature/my-new-feature"
           info="Name for the new branch and worktree"
           {...itemProps.worktreeName}
+          onChange={handleWorktreeNameOnChange}
         />
       )}
 

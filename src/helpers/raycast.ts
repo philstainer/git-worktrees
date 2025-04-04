@@ -1,7 +1,7 @@
+import { CACHE_KEYS } from "#/config/constants";
+import { Project } from "#/config/types";
 import { Application, Cache, getPreferenceValues, open } from "@raycast/api";
 import { executeCommand } from "./general";
-import { Project } from "#/config/types";
-import { CACHE_KEYS } from "#/config/constants";
 
 interface Preferences {
   projectsPath: string;
@@ -15,6 +15,7 @@ interface Preferences {
   shouldAutomaticallyPushWorktree: string;
   resizeEditorWindowAfterLaunch: boolean;
   windowResizeMode: string;
+  branchPrefixesToRemove: string;
 }
 
 export const getPreferences = () => getPreferenceValues<Preferences>();
