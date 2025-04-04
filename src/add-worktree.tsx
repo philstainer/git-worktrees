@@ -221,6 +221,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
   const abortable = useRef<AbortController>();
   const { isLoading: isLoadingRemoteBranches, data: remoteBranches } = useCachedPromise(
     async (project: string) => {
+      await fetch(project);
       return getRemoteBranches({ path: project }, { signal: abortable.current?.signal });
     },
     [values.project],
@@ -279,7 +280,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
 
       <Form.Dropdown title="Remote Branch" {...itemProps.branch} isLoading={isLoadingRemoteBranches}>
         <Form.Dropdown.Item value={WorktreeFlowType.CREATE_NEW} title="Create New Worktree" />
-        {!isLoadingRemoteBranches && remoteBranches.length > 0 && (
+        {remoteBranches.length > 0 && (
           <>
             {/* Main branches section */}
             <Form.Dropdown.Section>
