@@ -272,7 +272,9 @@ const getFilteredWorktrees = async (stdout: string, includeBare = false, showCur
 
 export const pushNewBranchToRemote = async ({ path, branch }: { path: string; branch: string }) => {
   try {
-    const command = `git -C ${path} push --set-upstream origin ${branch}`;
+    const { skipGitHooksWhenPushing } = getPreferences();
+    const noVerifyFlag = skipGitHooksWhenPushing ? " --no-verify" : "";
+    const command = `git -C ${path} push --set-upstream origin ${branch}${noVerifyFlag}`;
     await executeCommand(command);
   } catch (e: unknown) {
     throw Error(e instanceof Error ? e.message : "Unknown error occurred");

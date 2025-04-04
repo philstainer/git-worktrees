@@ -126,6 +126,15 @@
     },
     {
       "type": "checkbox",
+      "label": "Skip Git Hooks When Pushing",
+      "name": "skipGitHooksWhenPushing",
+      "title": "Skip Git Hooks When Pushing",
+      "description": "Skip git hooks when pushing new branches to remote",
+      "required": false,
+      "default": false
+    },
+    {
+      "type": "checkbox",
       "label": "Resize Editor Window After Launch",
       "name": "resizeEditorWindowAfterLaunch",
       "title": "Resize Editor Window After Launch",

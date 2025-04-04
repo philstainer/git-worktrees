@@ -16,6 +16,7 @@ interface Preferences {
   resizeEditorWindowAfterLaunch: boolean;
   windowResizeMode: string;
   branchPrefixesToRemove: string;
+  skipGitHooksWhenPushing: boolean;
 }
 
 export const getPreferences = () => getPreferenceValues<Preferences>();
