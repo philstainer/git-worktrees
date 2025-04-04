@@ -11,8 +11,8 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "clone-worktree",
-      "title": "Clone Worktree",
+      "name": "clone-project",
+      "title": "Clone Project",
       "subtitle": "Git Worktrees",
       "description": "Clones and sets up bare repo",
       "mode": "view"

@@ -1,13 +1,13 @@
 import { Action, ActionPanel, Icon, List, openExtensionPreferences } from "@raycast/api";
 import { useCachedPromise, useFrecencySorting } from "@raycast/utils";
 import { useMemo } from "react";
-import AddCommand from "./add-worktree";
-import CloneCommand from "./clone-worktree";
+import AddWorktree from "./add-worktree";
+import CloneProject from "./clone-project";
 import { DirectoriesDropdown, useDirectory } from "./components/Actions/DirectoriesDropdown";
 import { Worktree } from "./components/Worktree";
 import type { BareRepository, Project } from "./config/types";
 import { formatPath, getWorktreeFromCacheOrFetch } from "./helpers/file";
-import { preferences } from "./helpers/raycast";
+import { getPreferences, preferences } from "./helpers/raycast";
 
 export default function Command() {
   const { directory } = useDirectory();
@@ -84,14 +84,19 @@ export default function Command() {
 }
 
 export const EmptyWorktreeList = ({ directory }: { directory?: string }) => {
+  const { enableWorktreesGrouping } = getPreferences();
+
   return (
     <List.EmptyView
       title={`No bare repos or worktrees found in ${formatPath(preferences.projectsPath)}`}
       description="Try adding a new worktree or changing your repo dir preference."
       actions={
         <ActionPanel>
-          <Action.Push title="Add Worktree" icon={Icon.Plus} target={<AddCommand directory={directory} />} />
-          <Action.Push title="Clone Worktree" icon={Icon.Plus} target={<CloneCommand />} />
+          {enableWorktreesGrouping ? (
+            <Action.Push title="Clone Project" icon={Icon.Plus} target={<CloneProject />} />
+          ) : (
+            <Action.Push title="Add Worktree" icon={Icon.Plus} target={<AddWorktree directory={directory} />} />
+          )}
           <Action title="Open Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
         </ActionPanel>
       }

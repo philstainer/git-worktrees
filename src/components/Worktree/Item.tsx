@@ -10,6 +10,7 @@ import type { BareRepository, Worktree } from "#/config/types";
 import { preferences } from "#/helpers/raycast";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { relative } from "node:path";
+import AddWorktree from "../../add-worktree";
 
 export const Item = ({
   project,
@@ -50,6 +51,12 @@ export const Item = ({
 
             <RemoveWorktree worktree={worktree} revalidateProjects={revalidateProjects} />
             <RenameWorktree worktree={worktree} revalidateProjects={revalidateProjects} />
+            <Action.Push
+              title="Add New Worktree"
+              icon={Icon.Plus}
+              target={<AddWorktree directory={project?.fullPath} />}
+              shortcut={{ modifiers: ["cmd"], key: "n" }}
+            />
           </ActionPanel.Section>
 
           <ActionPanel.Section title="Extra Actions">

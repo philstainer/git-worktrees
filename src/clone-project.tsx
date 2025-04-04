@@ -12,7 +12,7 @@ import AddCommand from "./add-worktree";
 import { cloneBareRepository, parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
 import { preferences, updateCache } from "./helpers/raycast";
 
-interface CloneRepositoryFormInputs {
+interface CloneProjectFormInputs {
   url: string;
   directory: string[];
   repoName: string;
@@ -25,7 +25,7 @@ const initialValues = {
 export default function Command() {
   const { push } = useNavigation();
 
-  const { handleSubmit, itemProps, values, setValue, setValidationError, reset } = useForm<CloneRepositoryFormInputs>({
+  const { handleSubmit, itemProps, values, setValue, setValidationError, reset } = useForm<CloneProjectFormInputs>({
     onSubmit: async (values) => {
       const toast = await showToast({
         style: Toast.Style.Animated,

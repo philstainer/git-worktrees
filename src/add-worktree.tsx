@@ -58,8 +58,10 @@ export default function Command({ directory: initialDirectory }: { directory?: s
   }
 
   // Extract bare repositories from projects
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const bareRepos: BareRepository[] = data.map(({ id: _id, worktrees: _worktrees, ...project }) => project);
+  const bareRepos: BareRepository[] = data
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(({ id: _id, worktrees: _worktrees, ...project }) => project)
+    .filter((i) => (initialDirectory ? i.fullPath === initialDirectory : true));
 
   const initialValues = {
     project: undefined,
@@ -222,7 +224,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
   const { isLoading: isLoadingRemoteBranches, data: remoteBranches } = useCachedPromise(
     async (project: string) => {
       await fetch(project);
-      return getRemoteBranches({ path: project }, { signal: abortable.current?.signal });
+      return getRemoteBranches({ path: project });
     },
     [values.project],
     {
@@ -268,7 +270,12 @@ export default function Command({ directory: initialDirectory }: { directory?: s
       }
       enableDrafts
     >
-      <Form.Dropdown title="Project" info="Select a project to add a worktree to" {...itemProps.project}>
+      <Form.Dropdown
+        title="Project"
+        info="Select a project to add a worktree to"
+        {...itemProps.project}
+        value={initialDirectory ?? itemProps.project.value}
+      >
         {bareRepos.map((project) => (
           <Form.Dropdown.Item
             key={project.fullPath}
@@ -310,6 +317,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
           info="Name for the new branch and worktree"
           {...itemProps.worktreeName}
           onChange={handleWorktreeNameOnChange}
+          autoFocus={!!initialDirectory}
         />
       )}
 
