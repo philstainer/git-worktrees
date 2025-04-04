@@ -1,3 +1,5 @@
 # Git Worktree Changelog
 
-## [Initial Version] - 2024-08-26
+## [Initial Version] - {PR_MERGE_DATE}
+
+Added Git Worktrees extension
