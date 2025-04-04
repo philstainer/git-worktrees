@@ -134,6 +134,28 @@
       "default": false
     },
     {
+      "type": "dropdown",
+      "name": "shouldAutomaticallyOpenWorktree",
+      "title": "Should Automatically Open Worktree",
+      "description": "Should automatically open worktree after creation",
+      "required": false,
+      "default": "no",
+      "data": [
+        {
+          "title": "Yes",
+          "value": "yes"
+        },
+        {
+          "title": "No",
+          "value": "no"
+        },
+        {
+          "title": "Ask",
+          "value": "ask"
+        }
+      ]
+    },
+    {
       "type": "checkbox",
       "label": "Resize Editor Window After Launch",
       "name": "resizeEditorWindowAfterLaunch",

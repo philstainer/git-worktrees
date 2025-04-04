@@ -13,6 +13,7 @@ interface Preferences {
   editorApp: Application;
   terminalApp: Application;
   shouldAutomaticallyPushWorktree: string;
+  shouldAutomaticallyOpenWorktree: string;
   resizeEditorWindowAfterLaunch: boolean;
   windowResizeMode: string;
   branchPrefixesToRemove: string;

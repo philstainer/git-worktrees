@@ -1,3 +1,5 @@
+import { getPreferences, resizeEditorWindow } from "#/helpers/raycast";
+import { confirmAlert, open } from "@raycast/api";
 import childProcess, { ExecOptions } from "node:child_process";
 import { dirname } from "node:path";
 import { promisify } from "node:util";
@@ -151,4 +153,22 @@ export const sortBranches = (incomingArr: string[]) => {
   arr.sort(customSort);
 
   return arr;
+};
+
+export const shouldOpenWorktree = async ({ path, branch }: { path: string; branch: string }) => {
+  const { shouldAutomaticallyOpenWorktree, editorApp } = getPreferences();
+
+  if (shouldAutomaticallyOpenWorktree === "no") return;
+
+  if (shouldAutomaticallyOpenWorktree === "ask") {
+    const confirmed = await confirmAlert({
+      title: `Do you want to open '${branch}' with ${editorApp.name}?`,
+    });
+
+    if (!confirmed) return;
+  }
+
+  await open(path, editorApp.bundleId);
+
+  return resizeEditorWindow(editorApp);
 };

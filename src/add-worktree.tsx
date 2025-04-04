@@ -1,3 +1,4 @@
+import { shouldOpenWorktree } from "#/helpers/general";
 import { withToast } from "#/helpers/toast";
 import { Action, ActionPanel, Form, open, showToast, Toast, useNavigation } from "@raycast/api";
 import { useCachedPromise, useForm, useFrecencySorting } from "@raycast/utils";
@@ -178,6 +179,8 @@ export default function Command({ directory: initialDirectory }: { directory?: s
             onFailure: () => `Failed to open worktree in ${preferences.editorApp.name}`,
           }),
         };
+
+        await shouldOpenWorktree({ path: newWorktreePath, branch });
 
         pop();
       } catch (error) {
