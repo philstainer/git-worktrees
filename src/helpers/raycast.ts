@@ -82,6 +82,29 @@ export const removeWorktreeFromCache = ({
   return onSuccess?.();
 };
 
+export const removeProjectFromCache = ({
+  cache = new Cache(),
+  projectName,
+  onSuccess,
+}: {
+  cache?: Cache;
+  projectName: string;
+  onSuccess?: () => void;
+}) => {
+  if (!preferences.enableWorktreeCaching) return;
+  if (!cache.has(CACHE_KEYS.WORKTREES)) return onSuccess?.();
+
+  const projects = JSON.parse(cache.get(CACHE_KEYS.WORKTREES) as string) as Project[];
+
+  const projectIndex = projects.findIndex((project) => project.name === projectName);
+  if (projectIndex === -1) return;
+
+  projects.splice(projectIndex, 1);
+  cache.set(CACHE_KEYS.WORKTREES, JSON.stringify(projects));
+
+  return onSuccess?.();
+};
+
 export const storeDataInCache = <T>(key: string, data: T, options: { cache?: Cache; duration?: number } = {}) => {
   const cache = options.cache || new Cache();
   const duration = options.duration || 5 * 60 * 1000; // Default to 10 minutes

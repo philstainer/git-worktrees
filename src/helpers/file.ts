@@ -1,13 +1,14 @@
-import fg from "fast-glob";
-import { isInsideBareRepository, parseGitRemotes } from "./git";
-import { batchPromises, executeCommand } from "./general";
 import { ignoredDirectories } from "#/config";
-import { getPreferences, preferences } from "./raycast";
-import { Cache } from "@raycast/api";
-import { homedir } from "node:os";
-import { BareRepository, Project, Worktree } from "#/config/types";
 import { CACHE_KEYS } from "#/config/constants";
+import { BareRepository, Project, Worktree } from "#/config/types";
+import { Cache } from "@raycast/api";
+import fg from "fast-glob";
 import { statSync } from "node:fs";
+import { rm } from "node:fs/promises";
+import { homedir } from "node:os";
+import { batchPromises, executeCommand } from "./general";
+import { isInsideBareRepository, parseGitRemotes } from "./git";
+import { getPreferences, preferences } from "./raycast";
 
 const findDirectories = async ({
   searchDir,
@@ -187,4 +188,16 @@ export const isExistingDirectory = (path: string): boolean => {
   } catch {
     return false;
   }
+};
+
+export const removeDirectory = ({
+  path,
+  recursive = true,
+  force = true,
+}: {
+  path: string;
+  recursive?: boolean;
+  force?: boolean;
+}) => {
+  return rm(path, { recursive, force });
 };

@@ -1,16 +1,16 @@
+import { CACHE_KEYS, TEMP_DIR_PREFIX } from "#/config/constants";
+import { Project } from "#/config/types";
+import { formatPath, isExistingDirectory, removeDirectory } from "#/helpers/file";
+import { isGitCloneUrl, parseUrlSafe } from "#/helpers/general";
 import { Action, ActionPanel, Form, showToast, Toast, useNavigation } from "@raycast/api";
 import { useForm } from "@raycast/utils";
+import { mkdtemp, rename, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { useEffect, useRef } from "react";
-import { preferences, updateCache } from "./helpers/raycast";
-import { writeFile, rm, rename, mkdtemp } from "node:fs/promises";
-import { cloneBareRepository, parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
 import AddCommand from "./add-worktree";
-import { Project } from "#/config/types";
-import { formatPath, isExistingDirectory } from "#/helpers/file";
-import { tmpdir } from "node:os";
-import { CACHE_KEYS, TEMP_DIR_PREFIX } from "#/config/constants";
-import { isGitCloneUrl, parseUrlSafe } from "#/helpers/general";
+import { cloneBareRepository, parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
+import { preferences, updateCache } from "./helpers/raycast";
 
 interface CloneRepositoryFormInputs {
   url: string;
@@ -100,7 +100,7 @@ export default function Command() {
         // Clean up the temporary directory if it exists
         try {
           if (!tempDir) return;
-          await rm(tempDir, { recursive: true, force: true });
+          await removeDirectory({ path: tempDir, recursive: true, force: true });
         } catch (cleanupError) {
           console.error("Failed to clean up temporary directory:", cleanupError);
         }

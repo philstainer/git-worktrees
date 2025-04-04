@@ -1,14 +1,15 @@
-import type { BareRepository, Worktree } from "#/config/types";
-import { Action, ActionPanel, Icon, List } from "@raycast/api";
-import { relative } from "node:path";
-import { preferences } from "#/helpers/raycast";
+import ClearCache from "#/components/Actions/ClearCache";
 import { OpenEditor } from "#/components/Actions/OpenEditor";
 import { OpenTerminal } from "#/components/Actions/OpenTerminal";
+import { RefreshWorktrees } from "#/components/Actions/RefreshWorktrees";
+import { RemoveProject } from "#/components/Actions/RemoveProject";
 import { RemoveWorktree } from "#/components/Actions/RemoveWorktree";
 import { RenameWorktree } from "#/components/Actions/RenameWorktree";
-import { RefreshWorktrees } from "#/components/Actions/RefreshWorktrees";
-import ClearCache from "#/components/Actions/ClearCache";
 import { ResetRanking } from "#/components/Actions/ResetRanking";
+import type { BareRepository, Worktree } from "#/config/types";
+import { preferences } from "#/helpers/raycast";
+import { Action, ActionPanel, Icon, List } from "@raycast/api";
+import { relative } from "node:path";
 
 export const Item = ({
   project,
@@ -55,6 +56,8 @@ export const Item = ({
             <RefreshWorktrees revalidate={revalidateProjects} />
 
             <ClearCache />
+
+            <RemoveProject project={project} revalidateProjects={revalidateProjects} />
 
             {gitRemote?.url && <Action.OpenInBrowser url={gitRemote.url} title="Open Repository in Browser" />}
             <Action.ShowInFinder
