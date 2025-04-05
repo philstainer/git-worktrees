@@ -52,6 +52,7 @@ export const RemoveProject = ({
       icon={Icon.Trash}
       style={Action.Style.Destructive}
       onAction={() => handleRemoveProject(project)}
+      shortcut={{ modifiers: ["cmd"], key: "d" }}
     />
   );
 };
