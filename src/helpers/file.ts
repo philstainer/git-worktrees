@@ -8,7 +8,7 @@ import { rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { batchPromises, executeCommand } from "./general";
 import { isInsideBareRepository, parseGitRemotes } from "./git";
-import { getPreferences, lastProjectDir, preferences } from "./raycast";
+import { getDataFromCache, getPreferences, preferences, storeDataInCache } from "./raycast";
 
 const findDirectories = async ({
   searchDir,
@@ -132,11 +132,12 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
   if (!preferences.enableWorktreeCaching) return findBareRepos(searchDir);
 
   const cache = new Cache();
-  if (cache.has("directories")) return JSON.parse(cache.get("directories") as string) as BareRepository[];
+  if (cache.has(CACHE_KEYS.DIRECTORIES))
+    return JSON.parse(cache.get(CACHE_KEYS.DIRECTORIES) as string) as BareRepository[];
 
   const directories = await findBareRepos(searchDir);
-  cache.remove("directories");
-  cache.set("directories", JSON.stringify(directories));
+  cache.remove(CACHE_KEYS.DIRECTORIES);
+  cache.set(CACHE_KEYS.DIRECTORIES, JSON.stringify(directories));
 
   return directories;
 };
@@ -144,10 +145,10 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
 export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
   if (!preferences.enableWorktreeCaching) return getWorktrees(searchDir);
 
-  const lastProjectDirectory = lastProjectDir.get();
+  const lastProjectDirectory = getDataFromCache(CACHE_KEYS.LAST_PROJECT_DIR);
   if (lastProjectDirectory !== searchDir) {
     clearWorktreesAndDirectoriesFromCache();
-    lastProjectDir.set(searchDir);
+    storeDataInCache(CACHE_KEYS.LAST_PROJECT_DIR, searchDir);
     return getWorktrees(searchDir);
   }
 
@@ -168,12 +169,6 @@ export function clearWorktreesAndDirectoriesFromCache() {
 }
 
 const home = `${homedir()}/`;
-
-// // Return the directory containing the git repos specified in preferences
-// export function getRootDir(): string {
-//   const { projectsPath } = getPreferences();
-//   return projectsPath.replace("~/", home);
-// }
 
 // Prettify a path for display in the UI
 export function formatPath(path: string): string {

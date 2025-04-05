@@ -108,12 +108,11 @@ export const removeProjectFromCache = ({
 
 export const storeDataInCache = <T>(key: string, data: T, options: { cache?: Cache; duration?: number } = {}) => {
   const cache = options.cache || new Cache();
-  const duration = options.duration || 5 * 60 * 1000; // Default to 10 minutes
-  const expirationDate = Date.now() + duration;
+  const duration = options.duration;
 
   const cacheData = {
     data,
-    expirationDate,
+    expirationDate: duration ? Date.now() + duration : duration,
   };
 
   cache.set(key, JSON.stringify(cacheData));
@@ -121,10 +120,10 @@ export const storeDataInCache = <T>(key: string, data: T, options: { cache?: Cac
 
 export const getDataFromCache = <T>(key: string, options: { cache: Cache } = { cache: new Cache() }) => {
   const cachedValue = options.cache.get(key);
-
   if (!cachedValue) return null;
 
-  const { data, expirationDate } = JSON.parse(cachedValue) as { data: T; expirationDate: number };
+  const { data, expirationDate } = JSON.parse(cachedValue) as { data: T; expirationDate?: number };
+  if (!expirationDate) return data;
 
   if (Date.now() > expirationDate) {
     options.cache.remove(key); // Data is expired, remove it
@@ -132,15 +131,4 @@ export const getDataFromCache = <T>(key: string, options: { cache: Cache } = { c
   }
 
   return data;
-};
-
-const cache = new Cache();
-
-export const lastProjectDir = {
-  get: () => {
-    return cache.get(CACHE_KEYS.LAST_PROJECT_DIR);
-  },
-  set: (dir: string) => {
-    return cache.set(CACHE_KEYS.LAST_PROJECT_DIR, dir);
-  },
 };

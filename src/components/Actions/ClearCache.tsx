@@ -1,7 +1,6 @@
-import { clearWorktreesAndDirectoriesFromCache } from "#/helpers/file";
 import { preferences } from "#/helpers/raycast";
 import { withToast } from "#/helpers/toast";
-import { Action, closeMainWindow, Icon, PopToRootType } from "@raycast/api";
+import { Action, Cache, closeMainWindow, Icon, PopToRootType } from "@raycast/api";
 
 export default function ClearCache() {
   if (!preferences.enableWorktreeCaching) return null;
@@ -14,7 +13,9 @@ export default function ClearCache() {
       shortcut={{ modifiers: ["cmd", "shift"], key: "delete" }}
       onAction={withToast({
         action: async () => {
-          clearWorktreesAndDirectoriesFromCache();
+          const cache = new Cache();
+          cache.clear();
+
           await closeMainWindow({ popToRootType: PopToRootType.Immediate });
         },
         onSuccess: () => "Cache cleared",
