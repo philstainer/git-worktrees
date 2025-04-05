@@ -18,6 +18,13 @@
       "mode": "view"
     },
     {
+      "name": "view-projects",
+      "title": "View Projects",
+      "subtitle": "Git Worktrees",
+      "description": "View projects",
+      "mode": "view"
+    },
+    {
       "name": "view-worktrees",
       "title": "View Worktrees",
       "subtitle": "Git Worktrees",

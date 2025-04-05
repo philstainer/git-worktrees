@@ -18,20 +18,26 @@ export const Item = ({
   rankBareRepository,
   rankWorktree,
   revalidateProjects,
+  worktreeTitle = "path",
 }: {
   project?: BareRepository;
   worktree: Worktree;
   rankBareRepository?: (key: "increment" | "reset") => void;
   rankWorktree?: (key: "increment" | "reset") => void;
   revalidateProjects: () => void;
+  worktreeTitle: "name" | "path";
 }) => {
   const gitRemote = project?.gitRemotes?.[0];
 
   return (
     <List.Item
       key={worktree.branch}
-      icon={Icon.Folder}
-      title={relative(project?.fullPath ?? preferences.projectsPath, worktree.path)}
+      icon={Icon.Tree}
+      title={
+        worktreeTitle === "name"
+          ? (project?.name ?? "")
+          : relative(project?.fullPath ?? preferences.projectsPath, worktree.path)
+      }
       subtitle={`${worktree.branch ?? "detached"} @ ${worktree.commit?.slice(0, 7) ?? "none"}`}
       accessories={[
         // TODO: Data may be cached so this is not working as intended.
@@ -47,7 +53,7 @@ export const Item = ({
                 await Promise.all([rankBareRepository?.("increment"), rankWorktree?.("increment")]);
               }}
             />
-            <OpenTerminal worktree={worktree} />
+            <OpenTerminal path={worktree.path} />
 
             <RemoveWorktree worktree={worktree} revalidateProjects={revalidateProjects} />
             <RenameWorktree worktree={worktree} revalidateProjects={revalidateProjects} />
@@ -66,7 +72,13 @@ export const Item = ({
 
             <RemoveProject project={project} revalidateProjects={revalidateProjects} />
 
-            {gitRemote?.url && <Action.OpenInBrowser url={gitRemote.url} title="Open Repository in Browser" />}
+            {gitRemote?.url && (
+              <Action.OpenInBrowser
+                url={gitRemote.url}
+                title="Open Repository in Browser"
+                shortcut={{ modifiers: ["cmd"], key: "b" }}
+              />
+            )}
             <Action.ShowInFinder
               title="Show in Finder"
               path={worktree.path}

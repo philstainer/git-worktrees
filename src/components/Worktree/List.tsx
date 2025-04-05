@@ -1,18 +1,20 @@
 import type { BareRepository, Worktree } from "#/config/types";
-import { Item } from "./Item";
 import { preferences } from "#/helpers/raycast";
 import { useFrecencySorting } from "@raycast/utils";
+import { Item } from "./Item";
 
 export const List = ({
   project,
   worktrees,
   rankBareRepository,
   revalidateProjects,
+  worktreeTitle = "path",
 }: {
   project?: BareRepository;
   worktrees: Worktree[];
   rankBareRepository?: (key: "increment" | "reset") => void;
   revalidateProjects: () => void;
+  worktreeTitle?: "name" | "path";
 }) => {
   let visitWorktree: ((item: Worktree) => Promise<void>) | undefined;
   let resetWorktreeRanking: ((item: Worktree) => Promise<void>) | undefined;
@@ -41,6 +43,7 @@ export const List = ({
           : undefined
       }
       revalidateProjects={revalidateProjects}
+      worktreeTitle={worktreeTitle}
     />
   ));
 };

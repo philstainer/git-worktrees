@@ -271,7 +271,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
           <Action.SubmitForm title="Create Worktree" onSubmit={handleSubmit} />
         </ActionPanel>
       }
-      enableDrafts
+      enableDrafts={!initialDirectory}
     >
       <Form.Dropdown
         title="Project"

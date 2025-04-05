@@ -1,10 +1,9 @@
-import { Action, open } from "@raycast/api";
-import { withToast } from "#/helpers/toast";
 import { preferences } from "#/helpers/raycast";
-import { Worktree } from "#/config/types";
+import { withToast } from "#/helpers/toast";
+import { Action, open } from "@raycast/api";
 
-export const OpenTerminal = ({ worktree }: { worktree: Worktree }) => {
-  if (!preferences.terminalApp) return null;
+export const OpenTerminal = ({ path }: { path?: string }) => {
+  if (!preferences.terminalApp || !path) return null;
 
   return (
     <Action
@@ -12,10 +11,10 @@ export const OpenTerminal = ({ worktree }: { worktree: Worktree }) => {
       icon={{ fileIcon: preferences.terminalApp.path }}
       onAction={withToast({
         action: () => {
-          return open(worktree.path, preferences.terminalApp.bundleId);
+          return open(path, preferences.terminalApp.bundleId);
         },
-        onSuccess: () => `Opening worktree in ${preferences.terminalApp.name}`,
-        onFailure: () => `Failed to open worktree in ${preferences.terminalApp.name}`,
+        onSuccess: () => `Opening in ${preferences.terminalApp.name}`,
+        onFailure: () => `Failed to open in ${preferences.terminalApp.name}`,
       })}
     />
   );

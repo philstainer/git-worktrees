@@ -1,43 +1,30 @@
+import { useProjects } from "#/hooks/useWorktrees";
 import { Action, ActionPanel, Icon, List, openExtensionPreferences } from "@raycast/api";
-import { useCachedPromise, useFrecencySorting } from "@raycast/utils";
+import { relative } from "node:path";
 import { useMemo } from "react";
 import AddWorktree from "./add-worktree";
 import CloneProject from "./clone-project";
 import { DirectoriesDropdown, useDirectory } from "./components/Actions/DirectoriesDropdown";
 import { Worktree } from "./components/Worktree";
 import type { BareRepository, Project } from "./config/types";
-import { formatPath, getWorktreeFromCacheOrFetch } from "./helpers/file";
-import { getPreferences, preferences } from "./helpers/raycast";
+import { formatPath } from "./helpers/file";
+import { preferences } from "./helpers/raycast";
 
-export default function Command() {
+export default function Command({ projectId }: { projectId?: string }) {
   const { directory } = useDirectory();
 
   const {
-    data: incomingData,
-    isLoading,
-    revalidate,
-  } = useCachedPromise((searchDir) => getWorktreeFromCacheOrFetch(searchDir), [preferences.projectsPath]);
-
-  let data = incomingData;
-  let visitBareRepo: ((item: Project) => Promise<void>) | undefined;
-  let resetRankingRepos: ((item: Project) => Promise<void>) | undefined;
-
-  if (preferences.enableProjectsFrequencySorting) {
-    const {
-      data: sortedData,
-      visitItem,
-      resetRanking,
-    } = useFrecencySorting(data, { sortUnvisited: (a, b) => a.id.localeCompare(b.id), namespace: "repos" });
-
-    data = sortedData;
-    visitBareRepo = visitItem;
-    resetRankingRepos = resetRanking;
-  }
+    projects: incomingProjects,
+    isLoadingProjects,
+    revalidateProjects,
+    visitProject,
+    resetRankingProjects,
+  } = useProjects();
 
   const enableWorktreesGrouping = preferences.enableWorktreesGrouping;
 
   const [projects, groupedOrUngroupedWorktrees] = useMemo(() => {
-    const records = data ?? [];
+    const records = incomingProjects ?? [];
 
     const filteredRecords = directory === "all" ? records : records.filter((item) => item.id.endsWith(directory));
     const worktrees = enableWorktreesGrouping ? filteredRecords : filteredRecords.flatMap((p) => p.worktrees);
@@ -46,22 +33,40 @@ export default function Command() {
     const projects: BareRepository[] = records.map(({ id, worktrees, ...project }) => project);
 
     return [projects, worktrees];
-  }, [directory, data, preferences.enableProjectsFrequencySorting, enableWorktreesGrouping]);
+  }, [directory, incomingProjects, preferences.enableProjectsFrequencySorting, enableWorktreesGrouping]);
+
+  if (projectId) {
+    const project = incomingProjects?.find((p) => p.id === projectId);
+    if (!project) return null;
+
+    if (!project.worktrees.length)
+      return (
+        <List>
+          <EmptyWorktreeList cloneProject={false} directory={project.fullPath} />
+        </List>
+      );
+
+    return (
+      <List isLoading={isLoadingProjects}>
+        <Worktree.List worktrees={project.worktrees} revalidateProjects={revalidateProjects} worktreeTitle="name" />
+      </List>
+    );
+  }
 
   if (groupedOrUngroupedWorktrees.length === 0)
     return (
       <List>
-        <EmptyWorktreeList />
+        <EmptyWorktreeList cloneProject={false} />
       </List>
     );
 
   return (
-    <List isLoading={isLoading} searchBarAccessory={projects && <DirectoriesDropdown projects={projects} />}>
+    <List isLoading={isLoadingProjects} searchBarAccessory={projects && <DirectoriesDropdown projects={projects} />}>
       {enableWorktreesGrouping ? (
         directory &&
         (groupedOrUngroupedWorktrees as Project[]).length === 1 &&
         (groupedOrUngroupedWorktrees as Project[]).at(0)?.worktrees.length === 0 ? (
-          <EmptyWorktreeList />
+          <EmptyWorktreeList cloneProject={true} />
         ) : (
           (groupedOrUngroupedWorktrees as Project[]).map((project) => (
             <List.Section title={project.displayPath} key={project.id} subtitle={project.worktrees.length.toString()}>
@@ -69,30 +74,30 @@ export default function Command() {
                 project={project}
                 worktrees={project.worktrees}
                 rankBareRepository={(action) =>
-                  action === "increment" ? visitBareRepo?.(project) : resetRankingRepos?.(project)
+                  action === "increment" ? visitProject?.(project) : resetRankingProjects?.(project)
                 }
-                revalidateProjects={revalidate}
+                revalidateProjects={revalidateProjects}
               />
             </List.Section>
           ))
         )
       ) : (
-        <Worktree.List worktrees={groupedOrUngroupedWorktrees as Worktree[]} revalidateProjects={revalidate} />
+        <Worktree.List worktrees={groupedOrUngroupedWorktrees as Worktree[]} revalidateProjects={revalidateProjects} />
       )}
     </List>
   );
 }
 
-export const EmptyWorktreeList = ({ directory }: { directory?: string }) => {
-  const { enableWorktreesGrouping } = getPreferences();
+export const EmptyWorktreeList = ({ cloneProject, directory }: { cloneProject: boolean; directory?: string }) => {
+  const path = relative(preferences.projectsPath, directory ?? "");
 
   return (
     <List.EmptyView
-      title={`No bare repos or worktrees found in ${formatPath(preferences.projectsPath)}`}
+      title={`No bare repos or worktrees found in ${formatPath(path)}`}
       description="Try adding a new worktree or changing your repo dir preference."
       actions={
         <ActionPanel>
-          {enableWorktreesGrouping ? (
+          {cloneProject ? (
             <Action.Push title="Clone Project" icon={Icon.Plus} target={<CloneProject />} />
           ) : (
             <Action.Push title="Add Worktree" icon={Icon.Plus} target={<AddWorktree directory={directory} />} />
