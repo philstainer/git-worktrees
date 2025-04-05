@@ -3,26 +3,9 @@ import { Project } from "#/config/types";
 import { Application, Cache, getPreferenceValues, open } from "@raycast/api";
 import { executeCommand } from "./general";
 
-interface Preferences {
-  projectsPath: string;
-  maxScanningLevels: number;
-  enableWorktreeCaching: boolean;
-  enableWorktreesGrouping: boolean;
-  enableProjectsFrequencySorting: boolean;
-  enableWorktreesFrequencySorting: boolean;
-  editorApp: Application;
-  terminalApp: Application;
-  shouldAutomaticallyPushWorktree: string;
-  shouldAutomaticallyOpenWorktree: string;
-  resizeEditorWindowAfterLaunch: boolean;
-  windowResizeMode: string;
-  branchPrefixesToRemove: string;
-  skipGitHooksWhenPushing: boolean;
-}
-
 export const cache = new Cache();
 
-export const getPreferences = () => getPreferenceValues<Preferences>();
+export const getPreferences = () => getPreferenceValues<ExtensionPreferences>();
 
 export const resizeEditorWindow = async (editorApp: Application): Promise<void> => {
   const { resizeEditorWindowAfterLaunch, windowResizeMode } = getPreferences();

@@ -158,6 +158,8 @@ export const sortBranches = (incomingArr: string[]) => {
 export const shouldOpenWorktree = async ({ path, branch }: { path: string; branch: string }) => {
   const { shouldAutomaticallyOpenWorktree, editorApp } = getPreferences();
 
+  if (!editorApp) return;
+
   if (shouldAutomaticallyOpenWorktree === "no") return;
 
   if (shouldAutomaticallyOpenWorktree === "ask") {

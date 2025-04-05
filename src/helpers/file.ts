@@ -11,7 +11,7 @@ import { cache, getDataFromCache, getPreferences, storeDataInCache } from "./ray
 
 const findDirectories = async ({
   searchDir,
-  depth = getPreferences().maxScanningLevels * 2,
+  depth = +getPreferences().maxScanningLevels * 2,
   pattern,
 }: {
   searchDir: string;

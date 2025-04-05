@@ -1,15 +1,27 @@
 import { BARE_REPOSITORY, BARE_REPOSITORY_REMOTE_ORIGIN_FETCH } from "#/config/constants";
-import { Remote, Repo } from "#/config/types";
+import { Repo } from "#/config/types";
 import { getPreferences } from "#/helpers/raycast";
 import { confirmAlert, Icon } from "@raycast/api";
 import type { ExecOptions } from "child_process";
-import gitConfigParser from "parse-git-config";
 import parseUrl from "parse-url";
 import * as path from "path";
 import { executeCommand, removeFirstAndLastCharacter, removeNewLine } from "./general";
 
 export const getRemoteOrigin = async () => {
   const command = "git remote";
+
+  try {
+    const { stdout } = await executeCommand(command);
+    const origin = removeNewLine(stdout);
+
+    return origin === "" ? null : origin;
+  } catch (e: unknown) {
+    return null;
+  }
+};
+
+export const getRemoteOriginUrl = async ({ path }: { path: string }) => {
+  const command = `git -C ${path} remote get-url origin`;
 
   try {
     const { stdout } = await executeCommand(command);
@@ -58,53 +70,46 @@ export const setUpBareRepositoryFetch = async (path?: string) => {
 };
 
 export const parseGitRemotes = async (fullPath: string, path: string = "./.bare/config"): Promise<Repo[]> => {
-  const repos: Repo[] = [];
+  const remoteUrl = await getRemoteOriginUrl({ path: fullPath });
+  if (!remoteUrl) return [];
 
-  const gitConfig = await gitConfigParser({ cwd: fullPath, path: path, expandKeys: true });
-  if (!gitConfig?.remote) return repos;
+  const parsed = parseUrl(remoteUrl);
+  if (!parsed || !parsed.host || !parsed.pathname) return [];
 
-  for (const remoteName in gitConfig.remote) {
-    const config = gitConfig.remote[remoteName] as Remote;
+  const icon = {
+    source: {
+      light: Icon.Globe as Icon | string,
+      dark: Icon.Globe as Icon | string,
+    },
+  };
 
-    const parsed = parseUrl(config.url);
+  if (parsed.host.includes("github")) {
+    icon.source.light = "github-light.png";
+    icon.source.dark = "github-dark.png";
+  }
 
-    if (!parsed || !parsed.host || !parsed.pathname) continue;
+  if (parsed.host.includes("gitlab")) {
+    icon.source.light = "gitlab-light.png";
+    icon.source.dark = "gitlab-dark.png";
+  }
 
-    const icon = {
-      source: {
-        light: Icon.Globe as Icon | string,
-        dark: Icon.Globe as Icon | string,
-      },
-    };
+  if (parsed.host.includes("bitbucket")) {
+    icon.source.light = "bitbucket-light.png";
+    icon.source.dark = "bitbucket-dark.png";
+  }
 
-    if (parsed.host.includes("github")) {
-      icon.source.light = "github-light.png";
-      icon.source.dark = "github-dark.png";
-    }
+  const protocol = "https";
+  const url = `${protocol}://${parsed.host}${parsed.pathname.replace(".git", "")}`;
 
-    if (parsed.host.includes("gitlab")) {
-      icon.source.light = "gitlab-light.png";
-      icon.source.dark = "gitlab-dark.png";
-    }
-
-    if (parsed.host.includes("bitbucket")) {
-      icon.source.light = "bitbucket-light.png";
-      icon.source.dark = "bitbucket-dark.png";
-    }
-
-    const protocol = "https";
-    const url = `${protocol}://${parsed.host}${parsed.pathname.replace(".git", "")}`;
-
-    repos.push({
-      name: remoteName,
+  return [
+    {
+      name: "origin",
       host: parsed.host,
       hostDisplayName: parsed.host.split(".")[0].charAt(0).toUpperCase() + parsed.host.split(".")[0].slice(1),
       url: url,
       icon: icon,
-    });
-  }
-
-  return repos;
+    },
+  ];
 };
 
 export const cloneBareRepository = async ({ path, url }: { path: string; url: string }) => {

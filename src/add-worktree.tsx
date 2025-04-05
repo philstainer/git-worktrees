@@ -173,12 +173,14 @@ export default function Command({ directory: initialDirectory }: { directory?: s
           title: "Open Worktree",
           onAction: withToast({
             action: async () => {
-              await Promise.all([open(newWorktreePath, preferences.editorApp.bundleId)]);
+              if (!preferences?.editorApp) return;
+
+              await Promise.all([open(newWorktreePath, preferences?.editorApp?.bundleId)]);
 
               return resizeEditorWindow(preferences.editorApp);
             },
-            onSuccess: () => `Opening worktree in ${preferences.editorApp.name}`,
-            onFailure: () => `Failed to open worktree in ${preferences.editorApp.name}`,
+            onSuccess: () => `Opening worktree in ${preferences?.editorApp?.name}`,
+            onFailure: () => `Failed to open worktree in ${preferences?.editorApp?.name}`,
           }),
         };
 
