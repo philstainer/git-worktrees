@@ -227,7 +227,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
   }, [values.project]);
 
   // Loading remote branches
-  const abortable = useRef<AbortController>();
+  const abortable = useRef<AbortController>(undefined);
   const { isLoading: isLoadingRemoteBranches, data: remoteBranches } = useCachedPromise(
     async (project: string) => {
       await fetch(project);
