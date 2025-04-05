@@ -1,12 +1,12 @@
 import { getPreferences } from "#/helpers/raycast";
-import { useProjects } from "#/hooks/useWorktrees";
+import { useProjects } from "#/hooks/use-worktrees";
 import { Action, ActionPanel, Icon, List, openExtensionPreferences } from "@raycast/api";
 import { relative } from "node:path";
 import { useMemo } from "react";
 import AddWorktree from "./add-worktree";
 import CloneProject from "./clone-project";
-import { DirectoriesDropdown, useDirectory } from "./components/Actions/DirectoriesDropdown";
-import { Worktree } from "./components/Worktree";
+import { DirectoriesDropdown, useDirectory } from "./components/actions/directories-dropdown";
+import { Worktree } from "./components/worktree";
 import type { BareRepository, Project } from "./config/types";
 import { formatPath } from "./helpers/file";
 

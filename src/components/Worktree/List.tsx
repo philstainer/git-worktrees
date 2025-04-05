@@ -1,7 +1,7 @@
 import type { BareRepository, Worktree } from "#/config/types";
 import { getPreferences } from "#/helpers/raycast";
 import { useFrecencySorting } from "@raycast/utils";
-import { Item } from "./Item";
+import { Item } from "./item";
 
 export const List = ({
   project,

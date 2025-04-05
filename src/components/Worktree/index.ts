@@ -1,5 +1,5 @@
-import { List } from "./List";
-import { Item } from "./Item";
+import { Item } from "./item";
+import { List } from "./list";
 
 import type { Worktree as TWorktree } from "#/config/types";
 

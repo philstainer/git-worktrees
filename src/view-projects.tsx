@@ -1,7 +1,7 @@
-import ClearCache from "#/components/Actions/ClearCache";
-import { OpenTerminal } from "#/components/Actions/OpenTerminal";
-import { RemoveProject } from "#/components/Actions/RemoveProject";
-import { useProjects } from "#/hooks/useWorktrees";
+import ClearCache from "#/components/actions/clear-cache";
+import { OpenTerminal } from "#/components/actions/open-terminal";
+import { RemoveProject } from "#/components/actions/remove-project";
+import { useProjects } from "#/hooks/use-worktrees";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import AddWorktree from "./add-worktree";
 import ViewWorktrees from "./view-worktrees";
