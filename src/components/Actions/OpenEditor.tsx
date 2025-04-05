@@ -1,26 +1,28 @@
-import { Action, open } from "@raycast/api";
-import { withToast } from "#/helpers/toast";
-import { preferences, resizeEditorWindow } from "#/helpers/raycast";
 import { Worktree } from "#/config/types";
+import { getPreferences, resizeEditorWindow } from "#/helpers/raycast";
+import { withToast } from "#/helpers/toast";
+import { Action, open } from "@raycast/api";
 
 export const OpenEditor = ({ worktree, extraActions }: { worktree: Worktree; extraActions?: () => Promise<void> }) => {
-  if (!preferences.editorApp) return null;
+  const { editorApp } = getPreferences();
+
+  if (!editorApp) return null;
 
   return (
     <Action
-      title={`Open in ${preferences.editorApp.name}`}
-      icon={{ fileIcon: preferences.editorApp.path }}
+      title={`Open in ${editorApp.name}`}
+      icon={{ fileIcon: editorApp.path }}
       onAction={withToast({
         action: async () => {
           await Promise.all([
             extraActions ? extraActions() : Promise.resolve(),
-            open(worktree.path, preferences.editorApp.bundleId),
+            open(worktree.path, editorApp.bundleId),
           ]);
 
-          return resizeEditorWindow(preferences.editorApp);
+          return resizeEditorWindow(editorApp);
         },
-        onSuccess: () => `Opening worktree in ${preferences.editorApp.name}`,
-        onFailure: () => `Failed to open worktree in ${preferences.editorApp.name}`,
+        onSuccess: () => `Opening worktree in ${editorApp.name}`,
+        onFailure: () => `Failed to open worktree in ${editorApp.name}`,
       })}
     />
   );

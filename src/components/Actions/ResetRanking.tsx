@@ -1,6 +1,6 @@
-import { Action, Icon } from "@raycast/api";
+import { getPreferences } from "#/helpers/raycast";
 import { withToast } from "#/helpers/toast";
-import { preferences } from "#/helpers/raycast";
+import { Action, Icon } from "@raycast/api";
 
 export const ResetRanking = ({
   resetRankingRepo,
@@ -9,7 +9,9 @@ export const ResetRanking = ({
   resetRankingRepo?: () => void;
   resetWorktreeRanking?: () => void;
 }) => {
-  if (!preferences.enableProjectsFrequencySorting) return null;
+  const { enableProjectsFrequencySorting } = getPreferences();
+
+  if (!enableProjectsFrequencySorting) return null;
 
   return (
     <>

@@ -1,14 +1,13 @@
 import { ignoredDirectories } from "#/config";
 import { CACHE_KEYS } from "#/config/constants";
 import { BareRepository, Project, Worktree } from "#/config/types";
-import { Cache } from "@raycast/api";
 import fg from "fast-glob";
 import { statSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { batchPromises, executeCommand } from "./general";
 import { isInsideBareRepository, parseGitRemotes } from "./git";
-import { getDataFromCache, getPreferences, preferences, storeDataInCache } from "./raycast";
+import { cache, getDataFromCache, getPreferences, storeDataInCache } from "./raycast";
 
 const findDirectories = async ({
   searchDir,
@@ -129,9 +128,10 @@ export async function getWorktrees(searchDir: string): Promise<Project[]> {
 }
 
 export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
-  if (!preferences.enableWorktreeCaching) return findBareRepos(searchDir);
+  const { enableWorktreeCaching } = getPreferences();
 
-  const cache = new Cache();
+  if (!enableWorktreeCaching) return findBareRepos(searchDir);
+
   if (cache.has(CACHE_KEYS.DIRECTORIES))
     return JSON.parse(cache.get(CACHE_KEYS.DIRECTORIES) as string) as BareRepository[];
 
@@ -143,7 +143,9 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
 };
 
 export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
-  if (!preferences.enableWorktreeCaching) return getWorktrees(searchDir);
+  const { enableWorktreeCaching } = getPreferences();
+
+  if (!enableWorktreeCaching) return getWorktrees(searchDir);
 
   const lastProjectDirectory = getDataFromCache(CACHE_KEYS.LAST_PROJECT_DIR);
   if (lastProjectDirectory !== searchDir) {
@@ -152,7 +154,6 @@ export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
     return getWorktrees(searchDir);
   }
 
-  const cache = new Cache();
   if (cache.has(CACHE_KEYS.WORKTREES)) return JSON.parse(cache.get(CACHE_KEYS.WORKTREES) as string) as Project[];
 
   const worktrees = await getWorktrees(searchDir);
@@ -163,7 +164,6 @@ export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
 };
 
 export function clearWorktreesAndDirectoriesFromCache() {
-  const cache = new Cache();
   cache.remove(CACHE_KEYS.DIRECTORIES);
   cache.remove(CACHE_KEYS.WORKTREES);
 }

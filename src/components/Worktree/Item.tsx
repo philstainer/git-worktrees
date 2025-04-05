@@ -7,7 +7,7 @@ import { RemoveWorktree } from "#/components/Actions/RemoveWorktree";
 import { RenameWorktree } from "#/components/Actions/RenameWorktree";
 import { ResetRanking } from "#/components/Actions/ResetRanking";
 import type { BareRepository, Worktree } from "#/config/types";
-import { preferences } from "#/helpers/raycast";
+import { getPreferences } from "#/helpers/raycast";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { relative } from "node:path";
 import AddWorktree from "../../add-worktree";
@@ -27,6 +27,8 @@ export const Item = ({
   revalidateProjects: () => void;
   worktreeTitle: "name" | "path";
 }) => {
+  const { projectsPath } = getPreferences();
+
   const gitRemote = project?.gitRemotes?.[0];
 
   return (
@@ -34,9 +36,7 @@ export const Item = ({
       key={worktree.branch}
       icon={Icon.Tree}
       title={
-        worktreeTitle === "name"
-          ? (project?.name ?? "")
-          : relative(project?.fullPath ?? preferences.projectsPath, worktree.path)
+        worktreeTitle === "name" ? (project?.name ?? "") : relative(project?.fullPath ?? projectsPath, worktree.path)
       }
       subtitle={`${worktree.branch ?? "detached"} @ ${worktree.commit?.slice(0, 7) ?? "none"}`}
       accessories={[

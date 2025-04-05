@@ -17,7 +17,7 @@ import {
   pullBranchChanges,
   shouldPushWorktree,
 } from "./helpers/git";
-import { getPreferences, preferences, resizeEditorWindow, updateCache } from "./helpers/raycast";
+import { getPreferences, resizeEditorWindow, updateCache } from "./helpers/raycast";
 
 enum WorktreeFlowType {
   CREATE_NEW = "create_new",
@@ -39,6 +39,8 @@ const prefixesToRemove = getPreferences().branchPrefixesToRemove.split(",");
 export default function Command({ directory: initialDirectory }: { directory?: string } = {}) {
   const { pop } = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
+
+  const preferences = getPreferences();
 
   // Fetch all projects
   const {

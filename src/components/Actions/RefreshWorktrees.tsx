@@ -1,9 +1,11 @@
-import { Action, Icon } from "@raycast/api";
+import { getPreferences } from "#/helpers/raycast";
 import { withToast } from "#/helpers/toast";
-import { preferences } from "#/helpers/raycast";
+import { Action, Icon } from "@raycast/api";
 
 export const RefreshWorktrees = ({ revalidate }: { revalidate: () => void }) => {
-  if (preferences.enableWorktreeCaching) return null;
+  const { enableWorktreeCaching } = getPreferences();
+
+  if (enableWorktreeCaching) return null;
 
   return (
     <Action

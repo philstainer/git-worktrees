@@ -1,3 +1,4 @@
+import { getPreferences } from "#/helpers/raycast";
 import { useProjects } from "#/hooks/useWorktrees";
 import { Action, ActionPanel, Icon, List, openExtensionPreferences } from "@raycast/api";
 import { relative } from "node:path";
@@ -8,10 +9,11 @@ import { DirectoriesDropdown, useDirectory } from "./components/Actions/Director
 import { Worktree } from "./components/Worktree";
 import type { BareRepository, Project } from "./config/types";
 import { formatPath } from "./helpers/file";
-import { preferences } from "./helpers/raycast";
 
 export default function Command({ projectId }: { projectId?: string }) {
   const { directory } = useDirectory();
+
+  const preferences = getPreferences();
 
   const {
     projects: incomingProjects,
@@ -89,6 +91,8 @@ export default function Command({ projectId }: { projectId?: string }) {
 }
 
 export const EmptyWorktreeList = ({ cloneProject, directory }: { cloneProject: boolean; directory?: string }) => {
+  const preferences = getPreferences();
+
   const path = relative(preferences.projectsPath, directory ?? "");
 
   return (

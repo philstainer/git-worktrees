@@ -1,5 +1,5 @@
 import type { BareRepository, Worktree } from "#/config/types";
-import { preferences } from "#/helpers/raycast";
+import { getPreferences } from "#/helpers/raycast";
 import { useFrecencySorting } from "@raycast/utils";
 import { Item } from "./Item";
 
@@ -16,10 +16,12 @@ export const List = ({
   revalidateProjects: () => void;
   worktreeTitle?: "name" | "path";
 }) => {
+  const { enableWorktreesFrequencySorting } = getPreferences();
+
   let visitWorktree: ((item: Worktree) => Promise<void>) | undefined;
   let resetWorktreeRanking: ((item: Worktree) => Promise<void>) | undefined;
 
-  if (preferences.enableWorktreesFrequencySorting) {
+  if (enableWorktreesFrequencySorting) {
     const {
       data: sortedWorktrees,
       visitItem,
@@ -38,7 +40,7 @@ export const List = ({
       worktree={worktree}
       rankBareRepository={rankBareRepository}
       rankWorktree={
-        preferences.enableWorktreesFrequencySorting
+        enableWorktreesFrequencySorting
           ? (action) => (action === "increment" ? visitWorktree?.(worktree) : resetWorktreeRanking?.(worktree))
           : undefined
       }

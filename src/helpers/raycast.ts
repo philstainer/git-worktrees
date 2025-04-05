@@ -20,20 +20,20 @@ interface Preferences {
   skipGitHooksWhenPushing: boolean;
 }
 
+export const cache = new Cache();
+
 export const getPreferences = () => getPreferenceValues<Preferences>();
 
-export const preferences = getPreferenceValues<Preferences>();
-
 export const resizeEditorWindow = async (editorApp: Application): Promise<void> => {
-  if (!preferences.resizeEditorWindowAfterLaunch) {
-    return;
-  }
+  const { resizeEditorWindowAfterLaunch, windowResizeMode } = getPreferences();
+
+  if (!resizeEditorWindowAfterLaunch) return;
 
   try {
     await executeCommand(`osascript -e 'tell application "${editorApp.name}" to activate'`);
 
     setTimeout(() => {
-      open("raycast://extensions/raycast/window-management/" + preferences.windowResizeMode);
+      open("raycast://extensions/raycast/window-management/" + windowResizeMode);
     }, 500);
   } catch (error) {
     return;
@@ -41,11 +41,9 @@ export const resizeEditorWindow = async (editorApp: Application): Promise<void> 
 };
 
 export const updateCache = async <T>({
-  cache = new Cache(),
   key,
   updater,
 }: {
-  cache?: Cache;
   key: string;
   updater: (data: T | null) => Promise<T | null | undefined> | T | null | undefined;
 }) => {
@@ -59,17 +57,17 @@ export const updateCache = async <T>({
 };
 
 export const removeWorktreeFromCache = ({
-  cache = new Cache(),
   projectName,
   worktreeId,
   onSuccess,
 }: {
-  cache?: Cache;
   projectName: string;
   worktreeId: string;
   onSuccess?: () => void;
 }) => {
-  if (!preferences.enableWorktreeCaching) return;
+  const { enableWorktreeCaching } = getPreferences();
+
+  if (!enableWorktreeCaching) return;
   if (!cache.has(CACHE_KEYS.WORKTREES)) return onSuccess?.();
 
   const projects = JSON.parse(cache.get(CACHE_KEYS.WORKTREES) as string) as Project[];
@@ -83,16 +81,10 @@ export const removeWorktreeFromCache = ({
   return onSuccess?.();
 };
 
-export const removeProjectFromCache = ({
-  cache = new Cache(),
-  projectName,
-  onSuccess,
-}: {
-  cache?: Cache;
-  projectName: string;
-  onSuccess?: () => void;
-}) => {
-  if (!preferences.enableWorktreeCaching) return;
+export const removeProjectFromCache = ({ projectName, onSuccess }: { projectName: string; onSuccess?: () => void }) => {
+  const { enableWorktreeCaching } = getPreferences();
+
+  if (!enableWorktreeCaching) return;
   if (!cache.has(CACHE_KEYS.WORKTREES)) return onSuccess?.();
 
   const projects = JSON.parse(cache.get(CACHE_KEYS.WORKTREES) as string) as Project[];
@@ -106,8 +98,7 @@ export const removeProjectFromCache = ({
   return onSuccess?.();
 };
 
-export const storeDataInCache = <T>(key: string, data: T, options: { cache?: Cache; duration?: number } = {}) => {
-  const cache = options.cache || new Cache();
+export const storeDataInCache = <T>(key: string, data: T, options: { duration?: number } = {}) => {
   const duration = options.duration;
 
   const cacheData = {
@@ -118,15 +109,15 @@ export const storeDataInCache = <T>(key: string, data: T, options: { cache?: Cac
   cache.set(key, JSON.stringify(cacheData));
 };
 
-export const getDataFromCache = <T>(key: string, options: { cache: Cache } = { cache: new Cache() }) => {
-  const cachedValue = options.cache.get(key);
+export const getDataFromCache = <T>(key: string) => {
+  const cachedValue = cache.get(key);
   if (!cachedValue) return null;
 
   const { data, expirationDate } = JSON.parse(cachedValue) as { data: T; expirationDate?: number };
   if (!expirationDate) return data;
 
   if (Date.now() > expirationDate) {
-    options.cache.remove(key); // Data is expired, remove it
+    cache.remove(key); // Data is expired, remove it
     return null;
   }
 

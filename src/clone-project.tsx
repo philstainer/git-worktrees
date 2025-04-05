@@ -10,7 +10,7 @@ import path from "node:path";
 import { useEffect, useRef } from "react";
 import AddCommand from "./add-worktree";
 import { cloneBareRepository, parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
-import { preferences, updateCache } from "./helpers/raycast";
+import { getPreferences, updateCache } from "./helpers/raycast";
 
 interface CloneProjectFormInputs {
   url: string;
@@ -18,12 +18,14 @@ interface CloneProjectFormInputs {
   repoName: string;
 }
 
-const initialValues = {
-  directory: [preferences.projectsPath],
-};
-
 export default function Command() {
   const { push } = useNavigation();
+
+  const preferences = getPreferences();
+
+  const initialValues = {
+    directory: [preferences.projectsPath],
+  };
 
   const { handleSubmit, itemProps, values, setValue, setValidationError, reset } = useForm<CloneProjectFormInputs>({
     onSubmit: async (values) => {
