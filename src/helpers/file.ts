@@ -8,7 +8,7 @@ import { rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { batchPromises, executeCommand } from "./general";
 import { isInsideBareRepository, parseGitRemotes } from "./git";
-import { getPreferences, preferences } from "./raycast";
+import { getPreferences, lastProjectDir, preferences } from "./raycast";
 
 const findDirectories = async ({
   searchDir,
@@ -144,6 +144,13 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
 export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
   if (!preferences.enableWorktreeCaching) return getWorktrees(searchDir);
 
+  const lastProjectDirectory = lastProjectDir.get();
+  if (lastProjectDirectory !== searchDir) {
+    clearWorktreesAndDirectoriesFromCache();
+    lastProjectDir.set(searchDir);
+    return getWorktrees(searchDir);
+  }
+
   const cache = new Cache();
   if (cache.has(CACHE_KEYS.WORKTREES)) return JSON.parse(cache.get(CACHE_KEYS.WORKTREES) as string) as Project[];
 
@@ -154,7 +161,7 @@ export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
   return worktrees;
 };
 
-export function clearCache() {
+export function clearWorktreesAndDirectoriesFromCache() {
   const cache = new Cache();
   cache.remove(CACHE_KEYS.DIRECTORIES);
   cache.remove(CACHE_KEYS.WORKTREES);

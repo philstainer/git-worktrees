@@ -133,3 +133,14 @@ export const getDataFromCache = <T>(key: string, options: { cache: Cache } = { c
 
   return data;
 };
+
+const cache = new Cache();
+
+export const lastProjectDir = {
+  get: () => {
+    return cache.get(CACHE_KEYS.LAST_PROJECT_DIR);
+  },
+  set: (dir: string) => {
+    return cache.set(CACHE_KEYS.LAST_PROJECT_DIR, dir);
+  },
+};
