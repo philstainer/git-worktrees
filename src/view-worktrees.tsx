@@ -26,7 +26,7 @@ export default function Command({ projectId }: { projectId?: string }) {
     isLoadingProjects,
     revalidateProjects,
     visitProject,
-    resetRankingProjects,
+    resetProjectRanking,
   } = useProjects();
 
   const enableWorktreesGrouping = preferences.enableWorktreesGrouping;
@@ -100,7 +100,7 @@ export default function Command({ projectId }: { projectId?: string }) {
                 project={project}
                 worktrees={project.worktrees}
                 rankBareRepository={(action) =>
-                  action === "increment" ? visitProject?.(project) : resetRankingProjects?.(project)
+                  action === "increment" ? visitProject?.(project) : resetProjectRanking?.(project)
                 }
                 revalidateProjects={revalidateProjects}
               />

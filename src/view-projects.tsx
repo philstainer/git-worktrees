@@ -1,6 +1,8 @@
 import ClearCache from "#/components/actions/clear-cache";
 import { OpenTerminal } from "#/components/actions/open-terminal";
 import { RemoveProject } from "#/components/actions/remove-project";
+import { ResetRanking } from "#/components/actions/reset-item-ranking";
+import { ViewProjectWorktrees } from "#/components/actions/view-project-worktrees";
 import { getPreferences } from "#/helpers/raycast";
 import { useProjects } from "#/hooks/use-projects";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
@@ -8,7 +10,7 @@ import AddWorktree from "./add-worktree";
 import ViewWorktrees, { EmptyWorktreeList } from "./view-worktrees";
 
 export default function Command() {
-  const { projects, isLoadingProjects, revalidateProjects } = useProjects();
+  const { projects, isLoadingProjects, revalidateProjects, visitProject, resetProjectRanking } = useProjects();
   const { projectsPath } = getPreferences();
 
   if (!projects.length)
@@ -38,11 +40,13 @@ export default function Command() {
             actions={
               <ActionPanel>
                 <ActionPanel.Section title="Project Actions">
+                  <ViewProjectWorktrees projectId={project.id} visitProject={() => visitProject?.(project)} />
                   <Action.Push
                     title="View Worktrees"
                     icon={Icon.Tree}
                     target={<ViewWorktrees projectId={project.id} />}
                   />
+
                   <Action.Push
                     title="Add New Worktree"
                     icon={Icon.Plus}
@@ -71,6 +75,8 @@ export default function Command() {
                     path={project.fullPath}
                     shortcut={{ modifiers: ["cmd"], key: "f" }}
                   />
+
+                  <ResetRanking title="Reset Project Ranking" resetRanking={() => resetProjectRanking?.(project)} />
                 </ActionPanel.Section>
               </ActionPanel>
             }

@@ -14,7 +14,7 @@ export const useProjects = () => {
 
   let data = incomingData;
   let visitProject: ((item: Project) => Promise<void>) | undefined;
-  let resetRankingProjects: ((item: Project) => Promise<void>) | undefined;
+  let resetProjectRanking: ((item: Project) => Promise<void>) | undefined;
 
   if (enableProjectsFrequencySorting) {
     const {
@@ -25,7 +25,7 @@ export const useProjects = () => {
 
     data = sortedData;
     visitProject = visitItem;
-    resetRankingProjects = resetRanking;
+    resetProjectRanking = resetRanking;
   }
 
   return {
@@ -33,6 +33,6 @@ export const useProjects = () => {
     isLoadingProjects: isLoading,
     revalidateProjects: revalidate,
     visitProject,
-    resetRankingProjects,
+    resetProjectRanking,
   };
 };
