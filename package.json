@@ -246,7 +246,8 @@
     "@raycast/api": "^1.94.3",
     "@raycast/utils": "^1.19.1",
     "fast-glob": "^3.3.3",
-    "parse-url": "^9.2.0"
+    "parse-url": "^9.2.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.0.4",

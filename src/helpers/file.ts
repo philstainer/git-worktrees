@@ -109,7 +109,7 @@ export const getRepoWorktrees = async (bareDirectory: string): Promise<Worktree[
   }));
 };
 
-const isWorktreeDirty = async (path: string): Promise<boolean> => {
+export const isWorktreeDirty = async (path: string): Promise<boolean> => {
   try {
     const { stdout } = await executeCommand(`git -C ${path} status -s`);
     return stdout.trim().length > 0;

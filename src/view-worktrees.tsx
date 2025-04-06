@@ -1,6 +1,8 @@
 import ClearCache from "#/components/actions/clear-cache";
 import { getPreferences } from "#/helpers/raycast";
+import { useDebounce } from "#/hooks/use-debounce";
 import { useProjects } from "#/hooks/use-projects";
+import { useViewingWorktreesStore } from "#/stores/viewing-worktrees";
 import { Action, ActionPanel, Icon, List, openExtensionPreferences } from "@raycast/api";
 import { relative } from "node:path";
 import { useMemo } from "react";
@@ -15,6 +17,9 @@ export default function Command({ projectId }: { projectId?: string }) {
   const { directory } = useDirectory();
 
   const preferences = getPreferences();
+
+  const updateSelectedWorktree = useViewingWorktreesStore((state) => state.updateSelectedWorktree);
+  const handleOnSelectionChange = useDebounce((worktreePath) => updateSelectedWorktree(worktreePath ?? undefined));
 
   const {
     projects: incomingProjects,
@@ -60,19 +65,25 @@ export default function Command({ projectId }: { projectId?: string }) {
     );
   }
 
-  if (groupedOrUngroupedWorktrees.length === 0)
+  if (groupedOrUngroupedWorktrees.length === 0 && isLoadingProjects)
     return (
       <List>
         <EmptyWorktreeList
+          title="Loading Worktrees..."
+          description="Please wait while we load your worktrees"
           directory={directory}
-          actions={{ addWorktree: true }}
+          actions={{ addWorktree: false, cloneProject: false, clearCache: false }}
           revalidateProjects={revalidateProjects}
         />
       </List>
     );
 
   return (
-    <List isLoading={isLoadingProjects} searchBarAccessory={projects && <DirectoriesDropdown projects={projects} />}>
+    <List
+      isLoading={isLoadingProjects}
+      searchBarAccessory={projects && <DirectoriesDropdown projects={projects} />}
+      onSelectionChange={handleOnSelectionChange}
+    >
       {enableWorktreesGrouping ? (
         directory &&
         (groupedOrUngroupedWorktrees as Project[]).length === 1 &&
