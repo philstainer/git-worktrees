@@ -1,4 +1,4 @@
-import { Application, getPreferenceValues, open } from "@raycast/api";
+import { Application, getPreferenceValues, open, showToast, Toast } from "@raycast/api";
 import { executeCommand } from "./general";
 
 export const getPreferences = () => getPreferenceValues<Preferences>();
@@ -15,6 +15,8 @@ export const resizeEditorWindow = async (editorApp: Application): Promise<void> 
       open("raycast://extensions/raycast/window-management/" + windowResizeMode);
     }, 500);
   } catch (error) {
-    return;
+    if (!(error instanceof Error)) return;
+
+    showToast({ title: "Could not resize window", message: error.message, style: Toast.Style.Failure });
   }
 };
