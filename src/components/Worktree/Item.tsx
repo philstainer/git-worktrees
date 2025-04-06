@@ -68,7 +68,7 @@ export const Item = ({
           <ActionPanel.Section title="Extra Actions">
             <RefreshWorktrees revalidate={revalidateProjects} />
 
-            <ClearCache />
+            <ClearCache revalidateProjects={revalidateProjects} />
 
             <RemoveProject project={project} revalidateProjects={revalidateProjects} />
 

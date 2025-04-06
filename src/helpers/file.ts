@@ -5,9 +5,10 @@ import fg from "fast-glob";
 import { statSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { homedir } from "node:os";
+import { cache, getDataFromCache, storeDataInCache } from "./cache";
 import { batchPromises, executeCommand } from "./general";
 import { isInsideBareRepository, parseGitRemotes } from "./git";
-import { cache, getDataFromCache, getPreferences, storeDataInCache } from "./raycast";
+import { getPreferences } from "./raycast";
 
 const findDirectories = async ({
   searchDir,
@@ -147,7 +148,7 @@ export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
 
   if (!enableWorktreeCaching) return getWorktrees(searchDir);
 
-  const lastProjectDirectory = getDataFromCache(CACHE_KEYS.LAST_PROJECT_DIR);
+  const lastProjectDirectory = getDataFromCache<string>(CACHE_KEYS.LAST_PROJECT_DIR);
   if (lastProjectDirectory !== searchDir) {
     clearWorktreesAndDirectoriesFromCache();
     storeDataInCache(CACHE_KEYS.LAST_PROJECT_DIR, searchDir);

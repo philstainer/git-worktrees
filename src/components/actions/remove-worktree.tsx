@@ -1,9 +1,9 @@
-import { Action, confirmAlert, Icon, showToast, Toast } from "@raycast/api";
-import { Worktree } from "#/config/types";
-import path from "node:path";
 import { UNTRACKED_OR_MODIFIED_FILES_ERROR } from "#/config/constants";
-import { removeWorktreeFromCache } from "#/helpers/raycast";
+import { Worktree } from "#/config/types";
+import { removeWorktreeFromCache } from "#/helpers/cache";
 import { pruneWorktrees, removeBranch, removeWorktree } from "#/helpers/git";
+import { Action, confirmAlert, Icon, showToast, Toast } from "@raycast/api";
+import path from "node:path";
 
 export const RemoveWorktree = ({
   worktree,

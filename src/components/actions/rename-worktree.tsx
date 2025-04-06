@@ -1,8 +1,9 @@
 import { CACHE_KEYS } from "#/config/constants";
 import { Worktree, type Project } from "#/config/types";
+import { updateCache } from "#/helpers/cache";
 import { isExistingDirectory } from "#/helpers/file";
 import { checkIfBranchNameIsValid, fetch, getRemoteBranches, renameWorktree, shouldPushWorktree } from "#/helpers/git";
-import { getPreferences, updateCache } from "#/helpers/raycast";
+import { getPreferences } from "#/helpers/raycast";
 import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { useForm } from "@raycast/utils";
 import path from "node:path";

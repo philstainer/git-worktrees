@@ -9,8 +9,9 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { useEffect, useRef } from "react";
 import AddCommand from "./add-worktree";
+import { updateCache } from "./helpers/cache";
 import { cloneBareRepository, parseGitRemotes, setUpBareRepositoryFetch } from "./helpers/git";
-import { getPreferences, updateCache } from "./helpers/raycast";
+import { getPreferences } from "./helpers/raycast";
 
 interface CloneProjectFormInputs {
   url: string;

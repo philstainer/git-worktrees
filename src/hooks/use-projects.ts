@@ -13,8 +13,8 @@ export const useProjects = () => {
   } = useCachedPromise((searchDir) => getWorktreeFromCacheOrFetch(searchDir), [projectsPath], { initialData: [] });
 
   let data = incomingData;
-  let visitBareRepo: ((item: Project) => Promise<void>) | undefined;
-  let resetRankingRepos: ((item: Project) => Promise<void>) | undefined;
+  let visitProject: ((item: Project) => Promise<void>) | undefined;
+  let resetRankingProjects: ((item: Project) => Promise<void>) | undefined;
 
   if (enableProjectsFrequencySorting) {
     const {
@@ -24,15 +24,15 @@ export const useProjects = () => {
     } = useFrecencySorting(data, { sortUnvisited: (a, b) => a.id.localeCompare(b.id), namespace: "repos" });
 
     data = sortedData;
-    visitBareRepo = visitItem;
-    resetRankingRepos = resetRanking;
+    visitProject = visitItem;
+    resetRankingProjects = resetRanking;
   }
 
   return {
     projects: data,
     isLoadingProjects: isLoading,
     revalidateProjects: revalidate,
-    visitProject: visitBareRepo,
-    resetRankingProjects: resetRankingRepos,
+    visitProject,
+    resetRankingProjects,
   };
 };

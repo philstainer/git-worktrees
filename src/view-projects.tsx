@@ -1,13 +1,27 @@
 import ClearCache from "#/components/actions/clear-cache";
 import { OpenTerminal } from "#/components/actions/open-terminal";
 import { RemoveProject } from "#/components/actions/remove-project";
-import { useProjects } from "#/hooks/use-worktrees";
+import { getPreferences } from "#/helpers/raycast";
+import { useProjects } from "#/hooks/use-projects";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import AddWorktree from "./add-worktree";
-import ViewWorktrees from "./view-worktrees";
+import ViewWorktrees, { EmptyWorktreeList } from "./view-worktrees";
 
 export default function Command() {
   const { projects, isLoadingProjects, revalidateProjects } = useProjects();
+  const { projectsPath } = getPreferences();
+
+  if (!projects.length)
+    return (
+      <List>
+        <EmptyWorktreeList
+          title="No Projects Found"
+          description="Please clone a new project to get started or update your project directory in preferences"
+          directory={projectsPath}
+          actions={{ cloneProject: true }}
+        />
+      </List>
+    );
 
   return (
     <List isLoading={isLoadingProjects}>
@@ -39,7 +53,7 @@ export default function Command() {
                 </ActionPanel.Section>
 
                 <ActionPanel.Section title="Extra Actions">
-                  <ClearCache />
+                  <ClearCache revalidateProjects={revalidateProjects} />
 
                   <RemoveProject project={project} revalidateProjects={revalidateProjects} />
 

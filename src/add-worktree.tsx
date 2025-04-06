@@ -6,6 +6,7 @@ import path from "node:path";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CACHE_KEYS } from "./config/constants";
 import { BareRepository, Project } from "./config/types";
+import { updateCache } from "./helpers/cache";
 import { formatPath, getWorktreeFromCacheOrFetch } from "./helpers/file";
 import {
   addNewWorktree,
@@ -17,7 +18,7 @@ import {
   pullBranchChanges,
   shouldPushWorktree,
 } from "./helpers/git";
-import { getPreferences, resizeEditorWindow, updateCache } from "./helpers/raycast";
+import { getPreferences, resizeEditorWindow } from "./helpers/raycast";
 
 enum WorktreeFlowType {
   CREATE_NEW = "create_new",

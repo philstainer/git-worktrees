@@ -1,6 +1,6 @@
 import { type BareRepository } from "#/config/types";
+import { removeProjectFromCache } from "#/helpers/cache";
 import { removeDirectory } from "#/helpers/file";
-import { removeProjectFromCache } from "#/helpers/raycast";
 import { Action, Alert, confirmAlert, Icon, showToast, Toast } from "@raycast/api";
 
 export const RemoveProject = ({

@@ -1,5 +1,5 @@
 import { getPreferences } from "#/helpers/raycast";
-import { useProjects } from "#/hooks/use-worktrees";
+import { useProjects } from "#/hooks/use-projects";
 import { Action, ActionPanel, Icon, List, openExtensionPreferences } from "@raycast/api";
 import { relative } from "node:path";
 import { useMemo } from "react";
@@ -44,7 +44,7 @@ export default function Command({ projectId }: { projectId?: string }) {
     if (!project.worktrees.length)
       return (
         <List>
-          <EmptyWorktreeList cloneProject={false} directory={project.fullPath} />
+          <EmptyWorktreeList directory={project.fullPath} actions={{ addWorktree: true }} />
         </List>
       );
 
@@ -58,7 +58,7 @@ export default function Command({ projectId }: { projectId?: string }) {
   if (groupedOrUngroupedWorktrees.length === 0)
     return (
       <List>
-        <EmptyWorktreeList cloneProject={false} />
+        <EmptyWorktreeList directory={directory} actions={{ addWorktree: true }} />
       </List>
     );
 
@@ -68,7 +68,7 @@ export default function Command({ projectId }: { projectId?: string }) {
         directory &&
         (groupedOrUngroupedWorktrees as Project[]).length === 1 &&
         (groupedOrUngroupedWorktrees as Project[]).at(0)?.worktrees.length === 0 ? (
-          <EmptyWorktreeList cloneProject={true} />
+          <EmptyWorktreeList directory={directory} actions={{ cloneProject: true }} />
         ) : (
           (groupedOrUngroupedWorktrees as Project[]).map((project) => (
             <List.Section title={project.displayPath} key={project.id} subtitle={project.worktrees.length.toString()}>
@@ -90,23 +90,40 @@ export default function Command({ projectId }: { projectId?: string }) {
   );
 }
 
-export const EmptyWorktreeList = ({ cloneProject, directory }: { cloneProject: boolean; directory?: string }) => {
+export const EmptyWorktreeList = ({
+  title,
+  description,
+  directory,
+  actions = { cloneProject: false, addWorktree: false, openPreferences: true },
+}: {
+  title?: string;
+  description?: string;
+  directory?: string;
+  actions?: {
+    cloneProject?: boolean;
+    addWorktree?: boolean;
+    openPreferences?: boolean;
+  };
+}) => {
   const preferences = getPreferences();
 
   const path = relative(preferences.projectsPath, directory ?? "");
 
   return (
     <List.EmptyView
-      title={`No bare repos or worktrees found in ${formatPath(path)}`}
-      description="Try adding a new worktree or changing your repo dir preference."
+      title={title ?? `No bare repos or worktrees found in ${formatPath(path)}`}
+      description={description ?? "Try adding a new worktree or changing your repo dir preference."}
       actions={
         <ActionPanel>
-          {cloneProject ? (
-            <Action.Push title="Clone Project" icon={Icon.Plus} target={<CloneProject />} />
-          ) : (
+          {actions.cloneProject && <Action.Push title="Clone Project" icon={Icon.Plus} target={<CloneProject />} />}
+
+          {actions.addWorktree && (
             <Action.Push title="Add Worktree" icon={Icon.Plus} target={<AddWorktree directory={directory} />} />
           )}
-          <Action title="Open Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
+
+          {actions.openPreferences && (
+            <Action title="Open Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
+          )}
         </ActionPanel>
       }
     />
