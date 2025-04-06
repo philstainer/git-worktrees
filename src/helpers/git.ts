@@ -15,7 +15,7 @@ export const getRemoteOrigin = async () => {
     const origin = removeNewLine(stdout);
 
     return origin === "" ? null : origin;
-  } catch (e: unknown) {
+  } catch {
     return null;
   }
 };
@@ -28,7 +28,7 @@ export const getRemoteOriginUrl = async ({ path }: { path: string }) => {
     const origin = removeNewLine(stdout);
 
     return origin === "" ? null : origin;
-  } catch (e: unknown) {
+  } catch {
     return null;
   }
 };
@@ -41,7 +41,7 @@ export const isInsideBareRepository = async (path: string): Promise<boolean> => 
     const result = removeNewLine(stdout);
 
     return result === "true";
-  } catch (e: unknown) {
+  } catch {
     return false;
   }
 };
@@ -60,7 +60,7 @@ export const setUpBareRepositoryFetch = async (path?: string) => {
 
     await executeCommand(fetchOriginCommand);
     return;
-  } catch (e: unknown) {
+  } catch {
     try {
       await executeCommand(fetchOriginCommand);
     } catch (e: unknown) {
@@ -69,7 +69,7 @@ export const setUpBareRepositoryFetch = async (path?: string) => {
   }
 };
 
-export const parseGitRemotes = async (fullPath: string, path: string = "./.bare/config"): Promise<Repo[]> => {
+export const parseGitRemotes = async (fullPath: string): Promise<Repo[]> => {
   const remoteUrl = await getRemoteOriginUrl({ path: fullPath });
   if (!remoteUrl) return [];
 
@@ -192,7 +192,7 @@ export const checkIfBranchNameIsValid = async ({ path, name }: { path?: string; 
     await executeCommand(command);
 
     return true;
-  } catch (e: unknown) {
+  } catch {
     return false;
   }
 };
@@ -247,7 +247,7 @@ export const getCurrentBranchName = async () => {
     const { stdout } = await executeCommand(command);
 
     return stdout.split("\n")[0];
-  } catch (e: unknown) {
+  } catch {
     return null;
   }
 };
@@ -336,7 +336,7 @@ export const getCurrentCommit = async ({ path }: { path: string }) => {
     if (!stdout) return null;
 
     return stdout.trim();
-  } catch (e: unknown) {
+  } catch {
     return null;
   }
 };

@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef } from "react";
  * @param delay - The delay in milliseconds (default: 300ms)
  * @returns The debounced function
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useDebounce = <T extends (...args: any[]) => any>(
   fn: T,
   delay = 300,

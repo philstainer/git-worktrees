@@ -88,7 +88,7 @@ export const traverseUpDirectory = (path: string): string => dirname(path);
 export const parseUrlSafe = (url: string): parseUrl.ParsedUrl | null => {
   try {
     return parseUrl(url);
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -100,7 +100,7 @@ export const parseUrlSafe = (url: string): parseUrl.ParsedUrl | null => {
  */
 export const isGitCloneUrl = (url: string): boolean => {
   const gitUrlPattern =
-    /^(([A-Za-z0-9]+@|http(|s)\:\/\/)|(http(|s)\:\/\/[A-Za-z0-9]+@))([A-Za-z0-9.]+(:\d+)?)(?::|\/)([\d\/\w.-]+?)(\.git){1}$/i;
+    /^(([A-Za-z0-9]+@|http(|s):\/\/)|(http(|s):\/\/[A-Za-z0-9]+@))([A-Za-z0-9.]+(:\d+)?)(?::|\/)([\d/\w.-]+?)(\.git){1}$/i;
   return gitUrlPattern.test(url);
 };
 

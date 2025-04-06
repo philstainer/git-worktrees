@@ -48,7 +48,6 @@ export default function Command({ directory: initialDirectory }: { directory?: s
 
   // Extract bare repositories from projects
   const bareRepos: BareRepository[] = projects
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .map(({ id: _id, worktrees: _worktrees, ...project }) => project)
     .filter((i) => (initialDirectory ? i.fullPath === initialDirectory : true));
 
@@ -63,7 +62,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
     }),
   };
 
-  const { handleSubmit, itemProps, values, setValue } = useForm<AddWorktreeFormValues>({
+  const { handleSubmit, itemProps, values } = useForm<AddWorktreeFormValues>({
     initialValues,
     async onSubmit(values) {
       const fetchProjectUpdates = fetch(values.project);

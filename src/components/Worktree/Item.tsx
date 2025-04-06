@@ -102,7 +102,7 @@ export const Item = memo(
                 shortcut={{ modifiers: ["cmd"], key: "f" }}
               />
               <Action.OpenWith
-                title="Open With"
+                title="Open with"
                 path={worktree.path}
                 shortcut={{ modifiers: ["cmd", "opt"], key: "o" }}
               />

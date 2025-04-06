@@ -29,13 +29,13 @@ const findDirectories = async ({
     try {
       const { stdout } = await executeCommand(`fd ${args}`);
       result = stdout;
-    } catch (err) {
+    } catch {
       const { stdout } = await executeCommand(`/opt/homebrew/bin/fd ${args}`);
       result = stdout;
     }
 
     return result.trim().split("\n");
-  } catch (err) {
+  } catch {
     return fg(`${searchDir}/${pattern}`, {
       dot: true,
       ignore: ignoredDirectories.map((folder) => `**/${folder}/**`),
