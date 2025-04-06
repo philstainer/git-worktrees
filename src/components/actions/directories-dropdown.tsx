@@ -1,17 +1,14 @@
 import { BareRepository } from "#/config/types";
-import { getPreferences } from "#/helpers/raycast";
 import { Icon, List } from "@raycast/api";
 import { useCachedState } from "@raycast/utils";
-import { relative } from "node:path";
+import { basename } from "node:path";
 
 export function useDirectory() {
   const [directory, setDirectory] = useCachedState<string>("directory", "all");
   return { directory, setDirectory };
 }
-1;
-export function DirectoriesDropdown({ projects }: { projects: BareRepository[] }) {
-  const { projectsPath } = getPreferences();
 
+export function DirectoriesDropdown({ projects }: { projects: BareRepository[] }) {
   const { directory, setDirectory } = useDirectory();
 
   return (
@@ -24,7 +21,7 @@ export function DirectoriesDropdown({ projects }: { projects: BareRepository[] }
           return (
             <List.Dropdown.Item
               key={dir.fullPath}
-              title={relative(projectsPath, dir.fullPath)}
+              title={basename(dir.fullPath)}
               value={dir.fullPath}
               icon={Icon.Folder}
             />
