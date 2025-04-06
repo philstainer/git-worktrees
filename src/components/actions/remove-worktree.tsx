@@ -33,8 +33,8 @@ export const RemoveWorktree = ({
       if (!errorMessage.includes(UNTRACKED_OR_MODIFIED_FILES_ERROR)) throw e;
 
       const confirmed = await confirmAlert({
-        title: "Worktree has unsaved changes, are you sure?",
-        message: errorMessage,
+        title: "Worktree has unsaved changes",
+        message: "This action cannot be undone, are you sure?",
       });
 
       if (!confirmed) {
