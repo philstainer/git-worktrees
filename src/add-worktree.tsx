@@ -4,7 +4,7 @@ import { useProjects } from "#/hooks/use-projects";
 import { Action, ActionPanel, Form, open, showToast, Toast, useNavigation } from "@raycast/api";
 import { useCachedPromise, useForm } from "@raycast/utils";
 import path from "node:path";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { CACHE_KEYS } from "./config/constants";
 import { BareRepository, Project } from "./config/types";
 import { updateCache } from "./helpers/cache";
@@ -227,16 +227,6 @@ export default function Command({ directory: initialDirectory }: { directory?: s
       execute: !!values.project,
     },
   );
-
-  useEffect(() => {
-    if (values.branch !== WorktreeFlowType.CREATE_NEW && values.worktreeName === undefined) {
-      // When selecting a remote branch, set the name to match the branch name
-      const selectedBranch = values.branch;
-      return setValue("worktreeName", selectedBranch);
-    }
-
-    setValue("worktreeName", "");
-  }, [values.branch, remoteBranches, setValue]);
 
   const filteredBranches = useMemo(() => {
     if (!project) return remoteBranches;
