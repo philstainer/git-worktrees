@@ -18,8 +18,6 @@ export default function ClearCache({ revalidateProjects }: { revalidateProjects:
         action: async () => {
           cache.clear();
           revalidateProjects();
-
-          // await closeMainWindow({ popToRootType: PopToRootType.Immediate });
         },
         onSuccess: () => "Cache cleared",
         onFailure: () => "Failed to clear cache",

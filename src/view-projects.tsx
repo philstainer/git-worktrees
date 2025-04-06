@@ -18,7 +18,8 @@ export default function Command() {
           title="No Projects Found"
           description="Please clone a new project to get started or update your project directory in preferences"
           directory={projectsPath}
-          actions={{ cloneProject: true }}
+          actions={{ cloneProject: true, clearCache: true }}
+          revalidateProjects={revalidateProjects}
         />
       </List>
     );
