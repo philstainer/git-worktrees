@@ -1,7 +1,6 @@
-import { cache } from "#/helpers/cache";
 import { getPreferences } from "#/helpers/raycast";
 import { withToast } from "#/helpers/toast";
-import { Action, Icon } from "@raycast/api";
+import { Action, Cache, Icon } from "@raycast/api";
 
 export default function ClearCache({ revalidateProjects }: { revalidateProjects: () => void }) {
   const { enableWorktreeCaching } = getPreferences();
@@ -16,6 +15,8 @@ export default function ClearCache({ revalidateProjects }: { revalidateProjects:
       shortcut={{ modifiers: ["cmd", "shift"], key: "delete" }}
       onAction={withToast({
         action: async () => {
+          const cache = new Cache();
+
           cache.clear();
           revalidateProjects();
         },

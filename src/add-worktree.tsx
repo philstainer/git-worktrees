@@ -1,13 +1,14 @@
 import { shouldOpenWorktree } from "#/helpers/general";
 import { withToast } from "#/helpers/toast";
+import { useProjects } from "#/hooks/use-projects";
 import { Action, ActionPanel, Form, open, showToast, Toast, useNavigation } from "@raycast/api";
-import { useCachedPromise, useForm, useFrecencySorting } from "@raycast/utils";
+import { useCachedPromise, useForm } from "@raycast/utils";
 import path from "node:path";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CACHE_KEYS } from "./config/constants";
 import { BareRepository, Project } from "./config/types";
 import { updateCache } from "./helpers/cache";
-import { formatPath, getWorktreeFromCacheOrFetch } from "./helpers/file";
+import { formatPath } from "./helpers/file";
 import {
   addNewWorktree,
   addRemoteWorktree,
@@ -43,26 +44,10 @@ export default function Command({ directory: initialDirectory }: { directory?: s
 
   const preferences = getPreferences();
 
-  // Fetch all projects
-  const {
-    data: incomingData = [],
-    isLoading: isLoadingProjects,
-    revalidate,
-  } = useCachedPromise((searchDir) => getWorktreeFromCacheOrFetch(searchDir), [preferences.projectsPath]);
-
-  let data = incomingData;
-
-  if (preferences.enableProjectsFrequencySorting) {
-    const { data: sortedData } = useFrecencySorting(data, {
-      sortUnvisited: (a, b) => a.id.localeCompare(b.id),
-      namespace: "repos",
-    });
-
-    data = sortedData;
-  }
+  const { projects, isLoadingProjects, revalidateProjects } = useProjects();
 
   // Extract bare repositories from projects
-  const bareRepos: BareRepository[] = data
+  const bareRepos: BareRepository[] = projects
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .map(({ id: _id, worktrees: _worktrees, ...project }) => project)
     .filter((i) => (initialDirectory ? i.fullPath === initialDirectory : true));
@@ -121,7 +106,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
             parentPath: directory,
           });
 
-          revalidate();
+          revalidateProjects();
         } else {
           if (!isExistingBranch) {
             toast.style = Toast.Style.Failure;
@@ -221,11 +206,11 @@ export default function Command({ directory: initialDirectory }: { directory?: s
 
     const worktreePath = values.project;
 
-    const project = data.find((p) => p.id === worktreePath);
+    const project = projects.find((p) => p.id === worktreePath);
     if (!project) return;
 
     return project;
-  }, [values.project]);
+  }, [values.project, projects]);
 
   // Loading remote branches
   const abortable = useRef<AbortController>(undefined);
@@ -283,6 +268,7 @@ export default function Command({ directory: initialDirectory }: { directory?: s
         info="Select a project to add a worktree to"
         {...itemProps.project}
         value={initialDirectory ?? itemProps.project.value}
+        storeValue
       >
         {bareRepos.map((project) => (
           <Form.Dropdown.Item

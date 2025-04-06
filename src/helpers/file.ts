@@ -1,11 +1,12 @@
 import { ignoredDirectories } from "#/config";
 import { CACHE_KEYS } from "#/config/constants";
 import { BareRepository, Project, Worktree } from "#/config/types";
+import { Cache } from "@raycast/api";
 import fg from "fast-glob";
 import { statSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { homedir } from "node:os";
-import { cache, getDataFromCache, storeDataInCache } from "./cache";
+import { getDataFromCache, storeDataInCache } from "./cache";
 import { batchPromises, executeCommand } from "./general";
 import { isInsideBareRepository, parseGitRemotes } from "./git";
 import { getPreferences } from "./raycast";
@@ -129,6 +130,8 @@ export async function getWorktrees(searchDir: string): Promise<Project[]> {
 }
 
 export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
+  const cache = new Cache();
+
   const { enableWorktreeCaching } = getPreferences();
 
   if (!enableWorktreeCaching) return findBareRepos(searchDir);
@@ -144,13 +147,15 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
 };
 
 export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
+  const cache = new Cache();
+
   const { enableWorktreeCaching } = getPreferences();
 
   if (!enableWorktreeCaching) return getWorktrees(searchDir);
 
   const lastProjectDirectory = getDataFromCache<string>(CACHE_KEYS.LAST_PROJECT_DIR);
   if (lastProjectDirectory !== searchDir) {
-    clearWorktreesAndDirectoriesFromCache();
+    cache.clear();
     storeDataInCache(CACHE_KEYS.LAST_PROJECT_DIR, searchDir);
     return getWorktrees(searchDir);
   }
@@ -163,11 +168,6 @@ export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
 
   return worktrees;
 };
-
-export function clearWorktreesAndDirectoriesFromCache() {
-  cache.remove(CACHE_KEYS.DIRECTORIES);
-  cache.remove(CACHE_KEYS.WORKTREES);
-}
 
 const home = `${homedir()}/`;
 

@@ -96,7 +96,7 @@ export default function Command() {
           },
         });
 
-        reset(initialValues);
+        reset({ url: undefined, repoName: undefined });
 
         push(<AddCommand directory={finalPath} />);
       } catch (e: unknown) {
@@ -195,6 +195,7 @@ export default function Command() {
         canChooseDirectories={true}
         allowMultipleSelection={false}
         info="Directory to clone the repository into"
+        storeValue
       />
 
       <Form.TextField

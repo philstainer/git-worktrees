@@ -3,8 +3,6 @@ import { Project } from "#/config/types";
 import { getPreferences } from "#/helpers/raycast";
 import { Cache } from "@raycast/api";
 
-export const cache = new Cache();
-
 export const updateCache = async <T>({
   key,
   updater,
@@ -12,6 +10,8 @@ export const updateCache = async <T>({
   key: string;
   updater: (data: T | null) => Promise<T | null | undefined> | T | null | undefined;
 }) => {
+  const cache = new Cache();
+
   const data = cache.has(key) ? JSON.parse(cache.get(key) as string) : null;
 
   const newData = await updater(data);
@@ -30,6 +30,8 @@ export const removeWorktreeFromCache = ({
   worktreeId: string;
   onSuccess?: () => void;
 }) => {
+  const cache = new Cache();
+
   const { enableWorktreeCaching } = getPreferences();
 
   if (!enableWorktreeCaching) return;
@@ -47,6 +49,8 @@ export const removeWorktreeFromCache = ({
 };
 
 export const removeProjectFromCache = ({ projectName, onSuccess }: { projectName: string; onSuccess?: () => void }) => {
+  const cache = new Cache();
+
   const { enableWorktreeCaching } = getPreferences();
 
   if (!enableWorktreeCaching) return;
@@ -64,6 +68,8 @@ export const removeProjectFromCache = ({ projectName, onSuccess }: { projectName
 };
 
 export const storeDataInCache = <T>(key: string, data: T, options: { duration?: number } = {}) => {
+  const cache = new Cache();
+
   const duration = options.duration;
 
   const cacheData = {
@@ -75,6 +81,8 @@ export const storeDataInCache = <T>(key: string, data: T, options: { duration?: 
 };
 
 export const getDataFromCache = <T>(key: string) => {
+  const cache = new Cache();
+
   const cachedValue = cache.get(key);
   if (!cachedValue) return null;
 
