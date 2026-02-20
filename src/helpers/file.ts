@@ -7,7 +7,7 @@ import { statSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { getDataFromCache, storeDataInCache } from "./cache";
-import { batchPromises, executeCommand } from "./general";
+import { batchPromises, executeShellCommand } from "./general";
 import { isInsideBareRepository, parseGitRemotes } from "./git";
 import { getPreferences } from "./raycast";
 
@@ -60,7 +60,9 @@ export const findBareRepos = async (searchDir: string): Promise<BareRepository[]
 };
 
 export const getRepoWorktrees = async (bareDirectory: string): Promise<Worktree[]> => {
-  const { stdout } = await executeCommand(`git worktree list --porcelain`, { cwd: bareDirectory });
+  const { stdout } = await executeShellCommand(`git worktree list --porcelain`, { cwd: bareDirectory });
+
+  if (typeof stdout !== "string") return [];
 
   const worktrees = stdout
     .trim()
@@ -100,7 +102,8 @@ export const getRepoWorktrees = async (bareDirectory: string): Promise<Worktree[
 
 export const isWorktreeDirty = async (path: string): Promise<boolean> => {
   try {
-    const { stdout } = await executeCommand(`git -C ${path} status -s`);
+    const { stdout } = await executeShellCommand(`git -C "${path}" status -s`);
+    if (typeof stdout !== "string") return false;
     return stdout.trim().length > 0;
   } catch (e: unknown) {
     console.error({ path, e });
