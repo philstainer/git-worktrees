@@ -163,6 +163,37 @@
       ]
     },
     {
+      "type": "dropdown",
+      "name": "shouldRunWorktreeSetupCommands",
+      "title": "Run Worktree Setup Commands",
+      "description": "Run setup commands from .git-worktree-config.json after creating a new worktree",
+      "required": false,
+      "default": "ask",
+      "data": [
+        {
+          "title": "Yes",
+          "value": "yes"
+        },
+        {
+          "title": "No",
+          "value": "no"
+        },
+        {
+          "title": "Ask",
+          "value": "ask"
+        }
+      ]
+    },
+    {
+      "type": "textfield",
+      "name": "commandTimeoutSeconds",
+      "title": "Command Timeout (seconds)",
+      "description": "Maximum time in seconds to wait for each setup command to complete",
+      "required": false,
+      "default": "30",
+      "placeholder": "30"
+    },
+    {
       "type": "checkbox",
       "label": "Resize Editor Window After Launch",
       "name": "resizeEditorWindowAfterLaunch",
@@ -245,10 +276,10 @@
   "dependencies": {
     "@raycast/api": "^1.104.6",
     "@raycast/utils": "^1.19.1",
-"execa": "^9.6.1",
+    "execa": "^9.6.1",
     "fast-glob": "^3.3.3",
     "parse-url": "^10.0.3",
-"shell-env": "^4.0.3",
+    "shell-env": "^4.0.3",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
