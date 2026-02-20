@@ -21,27 +21,16 @@ const findDirectories = async ({
   pattern: string;
 }): Promise<string[]> => {
   try {
-    const excludedDirectories = ignoredDirectories.map((folder) => `--exclude ${folder}`).join(" ");
-    const args = `--glob --full-path --hidden --no-ignore --max-depth=${depth} --type=directory '${pattern}' '${searchDir}' ${excludedDirectories}`;
-
-    let result = "";
-
-    try {
-      const { stdout } = await executeCommand(`fd ${args}`);
-      result = stdout;
-    } catch {
-      const { stdout } = await executeCommand(`/opt/homebrew/bin/fd ${args}`);
-      result = stdout;
-    }
-
-    return result.trim().split("\n");
-  } catch {
-    return fg(`${searchDir}/${pattern}`, {
+    const result = await fg(`${searchDir}/${pattern}`, {
       dot: true,
       ignore: ignoredDirectories.map((folder) => `**/${folder}/**`),
       onlyDirectories: true,
       deep: depth,
     });
+
+    return result;
+  } catch {
+    return [];
   }
 };
 
