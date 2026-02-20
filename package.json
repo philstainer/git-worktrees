@@ -138,7 +138,7 @@
       "title": "Skip Git Hooks When Pushing",
       "description": "Skip git hooks when pushing new branches to remote",
       "required": false,
-      "default": false
+      "default": true
     },
     {
       "type": "dropdown",
