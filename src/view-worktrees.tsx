@@ -12,7 +12,7 @@ import { Worktree } from "./components/worktree";
 import type { BareRepository, Project } from "./config/types";
 import { formatPath } from "./helpers/file";
 
-export default function Command({ projectId }: { projectId?: string }) {
+export default function Command() {
   const { directory } = useDirectory();
 
   const preferences = getPreferences();
@@ -41,28 +41,6 @@ export default function Command({ projectId }: { projectId?: string }) {
 
     return [projects, worktrees];
   }, [directory, incomingProjects, preferences.enableProjectsFrequencySorting, enableWorktreesGrouping]);
-
-  if (projectId) {
-    const project = incomingProjects?.find((p) => p.id === projectId);
-    if (!project) return null;
-
-    if (!project.worktrees.length)
-      return (
-        <List>
-          <EmptyWorktreeList
-            directory={project.fullPath}
-            actions={{ addWorktree: true }}
-            revalidateProjects={revalidateProjects}
-          />
-        </List>
-      );
-
-    return (
-      <List isLoading={isLoadingProjects}>
-        <Worktree.List project={project} worktrees={project.worktrees} revalidateProjects={revalidateProjects} />
-      </List>
-    );
-  }
 
   if (groupedOrUngroupedWorktrees.length === 0 && isLoadingProjects)
     return (

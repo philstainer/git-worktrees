@@ -10,6 +10,7 @@ import { getDataFromCache, storeDataInCache } from "./cache";
 import { batchPromises, executeShellCommand } from "./general";
 import { isInsideBareRepository, parseGitRemotes } from "./git";
 import { getPreferences } from "./raycast";
+import { type Options as ExecaOptions } from "execa";
 
 const findDirectories = async ({
   searchDir,
@@ -36,6 +37,7 @@ const findDirectories = async ({
 
 export const findBareRepos = async (searchDir: string): Promise<BareRepository[]> => {
   const bareRepositories = await findDirectories({ searchDir, pattern: "**/.bare" });
+  console.log("Finding bare repositories");
 
   const validBareRepos = (
     await batchPromises(bareRepositories, 10, async (path) => {
@@ -59,8 +61,15 @@ export const findBareRepos = async (searchDir: string): Promise<BareRepository[]
   });
 };
 
-export const getRepoWorktrees = async (bareDirectory: string): Promise<Worktree[]> => {
-  const { stdout } = await executeShellCommand(`git worktree list --porcelain`, { cwd: bareDirectory });
+export const getRepoWorktrees = async (
+  bareDirectory: string,
+  opts: { signal: ExecaOptions["cancelSignal"] },
+): Promise<Worktree[]> => {
+  console.log(`Getting worktrees for ${bareDirectory}`);
+  const { stdout } = await executeShellCommand(`git worktree list --porcelain`, {
+    cwd: bareDirectory,
+    cancelSignal: opts.signal,
+  });
 
   if (typeof stdout !== "string") return [];
 
@@ -111,13 +120,16 @@ export const isWorktreeDirty = async (path: string): Promise<boolean> => {
   return false;
 };
 
-export async function getWorktrees(searchDir: string): Promise<Project[]> {
+export async function getWorktrees(
+  searchDir: string,
+  opts: { signal: ExecaOptions["cancelSignal"] },
+): Promise<Project[]> {
   const repos = await getDirectoriesFromCacheOrFetch(searchDir);
 
   return batchPromises(repos, 15, async (repo) => ({
     ...repo,
     id: repo.fullPath,
-    worktrees: await getRepoWorktrees(repo.fullPath),
+    worktrees: await getRepoWorktrees(repo.fullPath, opts),
   }));
 }
 
@@ -138,23 +150,26 @@ export const getDirectoriesFromCacheOrFetch = async (searchDir: string) => {
   return directories;
 };
 
-export const getWorktreeFromCacheOrFetch = async (searchDir: string) => {
+export const getWorktreeFromCacheOrFetch = async (
+  searchDir: string,
+  opts: { signal: ExecaOptions["cancelSignal"] },
+) => {
   const cache = new Cache();
 
   const { enableWorktreeCaching } = getPreferences();
 
-  if (!enableWorktreeCaching) return getWorktrees(searchDir);
+  if (!enableWorktreeCaching) return getWorktrees(searchDir, opts);
 
   const lastProjectDirectory = getDataFromCache<string>(CACHE_KEYS.LAST_PROJECT_DIR);
   if (lastProjectDirectory !== searchDir) {
     cache.clear();
     storeDataInCache(CACHE_KEYS.LAST_PROJECT_DIR, searchDir);
-    return getWorktrees(searchDir);
+    return getWorktrees(searchDir, opts);
   }
 
   if (cache.has(CACHE_KEYS.WORKTREES)) return JSON.parse(cache.get(CACHE_KEYS.WORKTREES) as string) as Project[];
 
-  const worktrees = await getWorktrees(searchDir);
+  const worktrees = await getWorktrees(searchDir, opts);
   cache.remove(CACHE_KEYS.WORKTREES);
   cache.set(CACHE_KEYS.WORKTREES, JSON.stringify(worktrees));
 

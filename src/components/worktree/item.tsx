@@ -1,4 +1,3 @@
-import ClearCache from "#/components/actions/clear-cache";
 import { OpenEditor } from "#/components/actions/open-editor";
 import { OpenTerminal } from "#/components/actions/open-terminal";
 import { RefreshWorktrees } from "#/components/actions/refresh-worktrees";
@@ -80,8 +79,6 @@ export const Item = memo(
 
             <ActionPanel.Section title="Extra Actions">
               <RefreshWorktrees revalidate={revalidateProjects} />
-
-              <ClearCache revalidateProjects={revalidateProjects} />
 
               <RemoveProject project={project} revalidateProjects={revalidateProjects} />
 

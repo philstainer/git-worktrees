@@ -2,7 +2,7 @@ import { OpenTerminal } from "#/components/actions/open-terminal";
 import { RemoveProject } from "#/components/actions/remove-project";
 import { ResetRanking } from "#/components/actions/reset-item-ranking";
 import { SetupActions } from "#/components/actions/setup-actions";
-import { ViewProjectWorktrees } from "#/components/actions/view-project-worktrees";
+import { ViewProjectWorktreesAction } from "#/components/actions/view-project-worktrees";
 import { getPreferences } from "#/helpers/raycast";
 import { useProjects } from "#/hooks/use-projects";
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
@@ -39,7 +39,7 @@ export default function Command() {
             actions={
               <ActionPanel>
                 <ActionPanel.Section title="Project Actions">
-                  <ViewProjectWorktrees projectId={project.id} visitProject={() => visitProject?.(project)} />
+                  <ViewProjectWorktreesAction project={project} visitProject={() => visitProject?.(project)} />
 
                   <Action.Push
                     title="Add New Worktree"

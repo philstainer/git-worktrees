@@ -2,17 +2,24 @@ import type { Project } from "#/config/types";
 import { getWorktreeFromCacheOrFetch } from "#/helpers/file";
 import { getPreferences } from "#/helpers/raycast";
 import { useCachedPromise, useFrecencySorting } from "@raycast/utils";
+import { useRef } from "react";
 
 export const useProjects = () => {
   const { projectsPath, enableProjectsFrequencySorting } = getPreferences();
+
+  const abortable = useRef<AbortController | undefined>(undefined);
 
   const {
     data: incomingData,
     isLoading,
     revalidate,
-  } = useCachedPromise((searchDir) => getWorktreeFromCacheOrFetch(searchDir), [projectsPath], { initialData: [] });
+  } = useCachedPromise(
+    (searchDir) => getWorktreeFromCacheOrFetch(searchDir, { signal: abortable.current?.signal }),
+    [projectsPath],
+    { initialData: [], keepPreviousData: true, abortable },
+  );
 
-  let data = incomingData;
+  let data = incomingData ?? [];
   let visitProject: ((item: Project) => Promise<void>) | undefined;
   let resetProjectRanking: ((item: Project) => Promise<void>) | undefined;
 
