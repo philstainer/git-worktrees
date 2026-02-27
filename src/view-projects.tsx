@@ -1,4 +1,3 @@
-import ClearCache from "#/components/actions/clear-cache";
 import { OpenTerminal } from "#/components/actions/open-terminal";
 import { RemoveProject } from "#/components/actions/remove-project";
 import { ResetRanking } from "#/components/actions/reset-item-ranking";
@@ -22,7 +21,6 @@ export default function Command() {
           description="Please clone a new project to get started or update your project directory in preferences"
           directory={projectsPath}
           actions={{ cloneProject: true, clearCache: true }}
-          revalidateProjects={revalidateProjects}
         />
       </List>
     );
@@ -56,8 +54,6 @@ export default function Command() {
                 </ActionPanel.Section>
 
                 <ActionPanel.Section title="Extra Actions">
-                  <ClearCache revalidateProjects={revalidateProjects} />
-
                   <RemoveProject project={project} revalidateProjects={revalidateProjects} />
 
                   {url && (

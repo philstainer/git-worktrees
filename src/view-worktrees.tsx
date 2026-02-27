@@ -1,4 +1,3 @@
-import ClearCache from "#/components/actions/clear-cache";
 import { getPreferences } from "#/helpers/raycast";
 import { useDebounce } from "#/hooks/use-debounce";
 import { useProjects } from "#/hooks/use-projects";
@@ -73,7 +72,6 @@ export default function Command({ projectId }: { projectId?: string }) {
           description="Please wait while we load your worktrees"
           directory={directory}
           actions={{ addWorktree: false, cloneProject: false, clearCache: false }}
-          revalidateProjects={revalidateProjects}
         />
       </List>
     );
@@ -88,11 +86,7 @@ export default function Command({ projectId }: { projectId?: string }) {
         directory &&
         (groupedOrUngroupedWorktrees as Project[]).length === 1 &&
         (groupedOrUngroupedWorktrees as Project[]).at(0)?.worktrees.length === 0 ? (
-          <EmptyWorktreeList
-            directory={directory}
-            actions={{ cloneProject: true }}
-            revalidateProjects={revalidateProjects}
-          />
+          <EmptyWorktreeList directory={directory} actions={{ cloneProject: true }} />
         ) : (
           (groupedOrUngroupedWorktrees as Project[]).map((project) => (
             <List.Section title={project.displayPath} key={project.id} subtitle={project.worktrees.length.toString()}>
@@ -119,7 +113,6 @@ export const EmptyWorktreeList = ({
   description,
   directory,
   actions = { cloneProject: false, addWorktree: false, openPreferences: true, clearCache: true },
-  revalidateProjects,
 }: {
   title?: string;
   description?: string;
@@ -130,7 +123,6 @@ export const EmptyWorktreeList = ({
     openPreferences?: boolean;
     clearCache?: boolean;
   };
-  revalidateProjects?: () => void;
 }) => {
   const preferences = getPreferences();
 
@@ -151,8 +143,6 @@ export const EmptyWorktreeList = ({
           {actions.openPreferences && (
             <Action title="Open Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
           )}
-
-          {actions.clearCache && !!revalidateProjects && <ClearCache revalidateProjects={revalidateProjects} />}
         </ActionPanel>
       }
     />
