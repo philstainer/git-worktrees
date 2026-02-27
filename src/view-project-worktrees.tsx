@@ -21,7 +21,6 @@ export default function ViewProjectWorktrees({ project }: ViewProjectWorktreesPr
           description="Add your first worktree to get started with this project"
           directory={project.fullPath}
           actions={{ addWorktree: true }}
-          revalidateProjects={revalidateWorktrees}
         />
       </List>
     );

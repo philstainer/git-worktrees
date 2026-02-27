@@ -1,6 +1,6 @@
 import { getPreferences } from "#/helpers/raycast";
 import { useDebounce } from "#/hooks/use-debounce";
-import { useProjects } from "#/hooks/use-projects";
+import { useProjectsWithWorktrees } from "#/hooks/use-projects-with-worktrees";
 import { useViewingWorktreesStore } from "#/stores/viewing-worktrees";
 import { Action, ActionPanel, Icon, List, openExtensionPreferences } from "@raycast/api";
 import { relative } from "node:path";
@@ -26,7 +26,7 @@ export default function Command() {
     revalidateProjects,
     visitProject,
     resetProjectRanking,
-  } = useProjects();
+  } = useProjectsWithWorktrees();
 
   const enableWorktreesGrouping = preferences.enableWorktreesGrouping;
 
@@ -49,7 +49,7 @@ export default function Command() {
           title="Loading Worktrees..."
           description="Please wait while we load your worktrees"
           directory={directory}
-          actions={{ addWorktree: false, cloneProject: false, clearCache: false }}
+          actions={{ addWorktree: false, cloneProject: false }}
         />
       </List>
     );
@@ -90,7 +90,7 @@ export const EmptyWorktreeList = ({
   title,
   description,
   directory,
-  actions = { cloneProject: false, addWorktree: false, openPreferences: true, clearCache: true },
+  actions = { cloneProject: false, addWorktree: false, openPreferences: true },
 }: {
   title?: string;
   description?: string;
@@ -99,7 +99,6 @@ export const EmptyWorktreeList = ({
     cloneProject?: boolean;
     addWorktree?: boolean;
     openPreferences?: boolean;
-    clearCache?: boolean;
   };
 }) => {
   const preferences = getPreferences();
