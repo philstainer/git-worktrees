@@ -1,34 +1,22 @@
-import { Application, getPreferenceValues, open } from "@raycast/api";
-import { executeCommand } from "./general";
-
-interface Preferences {
-  projectsPath: string;
-  maxScanningLevels: number;
-  enableWorktreeCaching: boolean;
-  // enableWorktreesGrouping: boolean; // TODO: Implement
-  enableProjectsAndWorktreesFrequencySorting: boolean;
-  editorApp: Application;
-  terminalApp: Application;
-  resizeEditorWindowAfterLaunch: boolean;
-  windowResizeMode: string;
-}
+import { Application, getPreferenceValues, open, showToast, Toast } from "@raycast/api";
+import { executeShellCommand } from "./general";
 
 export const getPreferences = () => getPreferenceValues<Preferences>();
 
-export const preferences = getPreferenceValues<Preferences>();
-
 export const resizeEditorWindow = async (editorApp: Application): Promise<void> => {
-  if (!preferences.resizeEditorWindowAfterLaunch) {
-    return;
-  }
+  const { resizeEditorWindowAfterLaunch, windowResizeMode } = getPreferences();
+
+  if (!resizeEditorWindowAfterLaunch) return;
 
   try {
-    await executeCommand(`osascript -e 'tell application "${editorApp.name}" to activate'`);
+    await executeShellCommand(`osascript -e 'tell application "${editorApp.name}" to activate'`);
 
     setTimeout(() => {
-      open("raycast://extensions/raycast/window-management/" + preferences.windowResizeMode);
+      open("raycast://extensions/raycast/window-management/" + windowResizeMode);
     }, 500);
   } catch (error) {
-    return;
+    if (!(error instanceof Error)) return;
+
+    showToast({ title: "Could not resize window", message: error.message, style: Toast.Style.Failure });
   }
 };

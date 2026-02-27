@@ -1,186 +1,160 @@
-import { formatPath, getWorktreeFromCacheOrFetch, Worktree } from "./helpers/file";
-import { getPreferences } from "./helpers/raycast";
-import { useCachedPromise, useFrecencySorting } from "@raycast/utils";
-import { Action, ActionPanel, Color, Icon, List, openExtensionPreferences } from "@raycast/api";
+import ClearCache from "#/components/actions/clear-cache";
+import { getPreferences } from "#/helpers/raycast";
+import { useDebounce } from "#/hooks/use-debounce";
+import { useProjects } from "#/hooks/use-projects";
+import { useViewingWorktreesStore } from "#/stores/viewing-worktrees";
+import { Action, ActionPanel, Icon, List, openExtensionPreferences } from "@raycast/api";
 import { relative } from "node:path";
-import { DirectoriesDropdown, useDirectory } from "./components/Actions/DirectoriesDropdown";
 import { useMemo } from "react";
-import { OpenEditor } from "./components/Actions/OpenEditor";
-import { OpenTerminal } from "./components/Actions/OpenTerminal";
-import { RemoveWorktree } from "./components/Actions/RemoveWorktree";
-import { ResetRanking } from "./components/Actions/ResetRanking";
-import { RefreshWorktrees } from "./components/Actions/RefreshWorktrees";
-import ClearCache from "./components/Actions/ClearCache";
+import AddWorktree from "./add-worktree";
+import CloneProject from "./clone-project";
+import { DirectoriesDropdown, useDirectory } from "./components/actions/directories-dropdown";
+import { Worktree } from "./components/worktree";
+import type { BareRepository, Project } from "./config/types";
+import { formatPath } from "./helpers/file";
 
-export default function Command() {
-  const { projectsPath, editorApp, terminalApp, enableProjectsAndWorktreesFrequencySorting } = getPreferences();
-
+export default function Command({ projectId }: { projectId?: string }) {
   const { directory } = useDirectory();
 
-  const {
-    data: worktrees,
-    isLoading,
-    revalidate,
-  } = useCachedPromise((searchDir) => getWorktreeFromCacheOrFetch(searchDir), [projectsPath]);
+  const preferences = getPreferences();
+
+  const updateSelectedWorktree = useViewingWorktreesStore((state) => state.updateSelectedWorktree);
+  const handleOnSelectionChange = useDebounce((worktreePath) => updateSelectedWorktree(worktreePath ?? undefined));
 
   const {
-    data: sortedData,
-    visitItem: visitBareRepo,
-    resetRanking: resetRankingRepos,
-  } = useFrecencySorting(worktrees, { sortUnvisited: (a, b) => a.id.localeCompare(b.id), namespace: "repos" });
+    projects: incomingProjects,
+    isLoadingProjects,
+    revalidateProjects,
+    visitProject,
+    resetProjectRanking,
+  } = useProjects();
 
-  // console.log({ worktrees, isLoading });
+  const enableWorktreesGrouping = preferences.enableWorktreesGrouping;
 
-  // const directories = useMemo(async () => {
-  //   const directories = await findBareRepos(getPreferences().projectsPath);
-  //
-  //   return directories;
-  // }, []);
-  //
-  // directories.then((directories) => console.log(directories));
+  const [projects, groupedOrUngroupedWorktrees] = useMemo(() => {
+    const records = incomingProjects ?? [];
 
-  // const worktreeEntries = Object.entries(worktrees ?? {});
+    const filteredRecords = directory === "all" ? records : records.filter((item) => item.id.endsWith(directory));
+    const worktrees = enableWorktreesGrouping ? filteredRecords : filteredRecords.flatMap((p) => p.worktrees);
 
-  const items = useMemo(() => {
-    const directories = (enableProjectsAndWorktreesFrequencySorting ? sortedData : worktrees) ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const projects: BareRepository[] = records.map(({ id, worktrees, ...project }) => project);
 
-    if (directory === "all") return directories;
+    return [projects, worktrees];
+  }, [directory, incomingProjects, preferences.enableProjectsFrequencySorting, enableWorktreesGrouping]);
 
-    return directories.filter((item) => item.id.endsWith(directory));
-  }, [directory, sortedData, worktrees]);
+  if (projectId) {
+    const project = incomingProjects?.find((p) => p.id === projectId);
+    if (!project) return null;
+
+    if (!project.worktrees.length)
+      return (
+        <List>
+          <EmptyWorktreeList
+            directory={project.fullPath}
+            actions={{ addWorktree: true }}
+            revalidateProjects={revalidateProjects}
+          />
+        </List>
+      );
+
+    return (
+      <List isLoading={isLoadingProjects}>
+        <Worktree.List project={project} worktrees={project.worktrees} revalidateProjects={revalidateProjects} />
+      </List>
+    );
+  }
+
+  if (groupedOrUngroupedWorktrees.length === 0 && isLoadingProjects)
+    return (
+      <List>
+        <EmptyWorktreeList
+          title="Loading Worktrees..."
+          description="Please wait while we load your worktrees"
+          directory={directory}
+          actions={{ addWorktree: false, cloneProject: false, clearCache: false }}
+          revalidateProjects={revalidateProjects}
+        />
+      </List>
+    );
 
   return (
-    <List isLoading={isLoading} searchBarAccessory={worktrees && <DirectoriesDropdown directories={worktrees} />}>
-      {items.length === 0 ? (
-        <List.EmptyView
-          // title={`No worktrees found in ${formatPath(rootDir)}`}
-          title={`No bare repos or worktrees found in ${formatPath(projectsPath)}`}
-          description="Try adding a new worktree or changing your repo dir preference."
-          actions={
-            <ActionPanel>
-              {/*<Action.Push title="Add Worktree" icon={Icon.Plus} target={<AddCommand />} />*/}
-              <Action title="Open Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
-            </ActionPanel>
-          }
-        />
+    <List
+      isLoading={isLoadingProjects}
+      searchBarAccessory={projects && <DirectoriesDropdown projects={projects} />}
+      onSelectionChange={handleOnSelectionChange}
+    >
+      {enableWorktreesGrouping ? (
+        directory &&
+        (groupedOrUngroupedWorktrees as Project[]).length === 1 &&
+        (groupedOrUngroupedWorktrees as Project[]).at(0)?.worktrees.length === 0 ? (
+          <EmptyWorktreeList
+            directory={directory}
+            actions={{ cloneProject: true }}
+            revalidateProjects={revalidateProjects}
+          />
+        ) : (
+          (groupedOrUngroupedWorktrees as Project[]).map((project) => (
+            <List.Section title={project.displayPath} key={project.id} subtitle={project.worktrees.length.toString()}>
+              <Worktree.List
+                project={project}
+                worktrees={project.worktrees}
+                rankBareRepository={(action) =>
+                  action === "increment" ? visitProject?.(project) : resetProjectRanking?.(project)
+                }
+                revalidateProjects={revalidateProjects}
+              />
+            </List.Section>
+          ))
+        )
       ) : (
-        items.map((item) => (
-          <List.Section title={formatPath(item.id)} key={item.id} subtitle={item.worktrees.length.toString()}>
-            <WorktreesList
-              key={item.id}
-              repo={item.id}
-              worktrees={item.worktrees}
-              visitBareRepo={visitBareRepo}
-              resetDirectoryRanking={resetRankingRepos}
-              item={item}
-              revalidate={revalidate}
-            />
-          </List.Section>
-        ))
+        <Worktree.List worktrees={groupedOrUngroupedWorktrees as Worktree[]} revalidateProjects={revalidateProjects} />
       )}
     </List>
   );
 }
 
-const WorktreesList = ({
-  repo,
-  worktrees,
-  visitBareRepo,
-  resetDirectoryRanking,
-  item,
-  revalidate,
+export const EmptyWorktreeList = ({
+  title,
+  description,
+  directory,
+  actions = { cloneProject: false, addWorktree: false, openPreferences: true, clearCache: true },
+  revalidateProjects,
 }: {
-  repo: string;
-  worktrees: Worktree[];
-  visitBareRepo: (item: { id: string; worktrees: Worktree[] }) => Promise<void>;
-  resetDirectoryRanking: (item: { id: string; worktrees: Worktree[] }) => Promise<void>;
-  item: { id: string; worktrees: Worktree[] };
-  revalidate: () => void;
+  title?: string;
+  description?: string;
+  directory?: string;
+  actions?: {
+    cloneProject?: boolean;
+    addWorktree?: boolean;
+    openPreferences?: boolean;
+    clearCache?: boolean;
+  };
+  revalidateProjects?: () => void;
 }) => {
-  const { editorApp, terminalApp, enableProjectsAndWorktreesFrequencySorting, enableWorktreeCaching } =
-    getPreferences();
+  const preferences = getPreferences();
 
-  const {
-    data: sortedWorktrees,
-    visitItem: visitWorktree,
-    resetRanking: resetWorktreeRanking,
-  } = useFrecencySorting(worktrees, { sortUnvisited: (a, b) => a.id.localeCompare(b.id), namespace: "worktrees" });
+  const path = relative(preferences.projectsPath, directory ?? "");
 
-  const items = (enableProjectsAndWorktreesFrequencySorting ? sortedWorktrees : worktrees) ?? [];
-
-  return items.map((worktree) => (
-    <List.Item
-      key={worktree.branch}
-      icon={Icon.Folder}
-      title={relative(repo, worktree.path)}
-      subtitle={`${worktree.branch ?? "detached"} @ ${worktree.commit?.slice(0, 7) ?? "none"}`}
-      accessories={[...(worktree.dirty ? [{ tag: { value: "Dirty", color: Color.Yellow }, tooltip: "Dirty" }] : [])]}
+  return (
+    <List.EmptyView
+      title={title ?? `No bare repos or worktrees found in ${formatPath(path)}`}
+      description={description ?? "Try adding a new worktree or changing your repo dir preference."}
       actions={
         <ActionPanel>
-          <ActionPanel.Section title="Worktree Actions">
-            <OpenEditor
-              worktree={worktree}
-              extraActions={async () => {
-                await Promise.all([visitBareRepo(item), visitWorktree(worktree)]);
-              }}
-            />
-            <OpenTerminal worktree={worktree} />
+          {actions.cloneProject && <Action.Push title="Clone Project" icon={Icon.Plus} target={<CloneProject />} />}
 
-            <RemoveWorktree worktree={worktree} />
-          </ActionPanel.Section>
+          {actions.addWorktree && (
+            <Action.Push title="Add Worktree" icon={Icon.Plus} target={<AddWorktree directory={directory} />} />
+          )}
 
-          <ActionPanel.Section title="Extra Actions">
-            <RefreshWorktrees revalidate={revalidate} />
+          {actions.openPreferences && (
+            <Action title="Open Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
+          )}
 
-            <ClearCache />
-
-            <Action.ShowInFinder
-              title="Show in Finder"
-              path={worktree.path}
-              shortcut={{ modifiers: ["cmd"], key: "f" }}
-            />
-            <Action.OpenWith
-              title="Open With"
-              path={worktree.path}
-              shortcut={{ modifiers: ["cmd", "opt"], key: "o" }}
-            />
-
-            <ResetRanking
-              resetRankingRepo={() => resetDirectoryRanking(item)}
-              resetWorktreeRanking={() => resetWorktreeRanking(worktree)}
-            />
-          </ActionPanel.Section>
+          {actions.clearCache && !!revalidateProjects && <ClearCache revalidateProjects={revalidateProjects} />}
         </ActionPanel>
       }
     />
-  ));
+  );
 };
-
-// const getDirectories = (path: string, depth?: number): ProjectList => {
-//   if (!depth) {
-//     depth = 0
-//   }
-//
-//   if (depth > Number(maxScanningLevels)) {
-//     return []
-//   }
-//
-//   try {
-//     const entries = fs.readdirSync(path, { withFileTypes: true })
-//     const directories = entries.filter((entry) => entry.isDirectory() && entry.name !== '.git')
-//
-//     let subDirectories: ProjectList = []
-//     for (const directory of directories) {
-//       const dirPath = `${path}/${directory.name}`
-//       if (fs.existsSync(`${dirPath}/.git`)) {
-//         subDirectories.push(new Project(undefined, dirPath))
-//       } else {
-//         subDirectories = subDirectories.concat(getDirectories(dirPath, depth + 1))
-//       }
-//     }
-//
-//     return subDirectories
-//   } catch (error) {
-//     return []
-//   }
-// }
